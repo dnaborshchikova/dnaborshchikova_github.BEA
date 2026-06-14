@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  eventmanagement_db:
+    image: postgres:15
+    container_name: eventmanagement_db
+    environment:
+      TZ: "Europe/Moscow"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: EventManagement
+    ports:
+      - "5433:5432"
+    volumes:
+      - eventmanagement_pgdata:/var/lib/postgresql/data
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+  eventmanagement:
+    build: .
+    ports:
+      - "5008:8080"
+    container_name: eventmanagement_app
+    depends_on:
+      eventmanagement_db:
+        condition: service_healthy
+    environment:
+      TZ: "Europe/Moscow"
+      ConnectionStrings__Default: Host=eventmanagement_db;Port=5432;Database=EventManagement;Username=postgres;Password=postgres
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: eventmanagement_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5051:80"
+    depends_on:
+      - eventmanagement_db
+
+volumes:
+  eventmanagement_pgdata:

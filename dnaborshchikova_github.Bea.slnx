@@ -14,6 +14,7 @@
   <Folder Name="/EventManagement/">
     <Project Path="EventManagement/dnaborshchikova_github.Bea.EventManagement.Core/dnaborshchikova_github.Bea.EventManagement.Core.csproj" />
     <Project Path="EventManagement/dnaborshchikova_github.Bea.EventManagement.Infrastructure/dnaborshchikova_github.Bea.EventManagement.Infrastructure.csproj" />
+    <Project Path="EventManagement/dnaborshchikova_github.Bea.EventManagement.Tests/dnaborshchikova_github.Bea.EventManagement.Tests.csproj" Id="dfe36d7a-4596-4932-a0f0-de70495e2fb9" />
     <Project Path="EventManagement/dnaborshchikova_github.Bea.EventManagement.WebApi/dnaborshchikova_github.Bea.EventManagement.WebApi.csproj" />
   </Folder>
 </Solution>
