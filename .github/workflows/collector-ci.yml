@@ -7,20 +7,12 @@ on:
     branches:
       - master
       - 'feature-*'
-    paths-ignore:
-      - '**.md'
-      - 'Dockerfile'
-      - 'docker/**'
 
   pull_request:
     paths:
       - 'Collector/**'
     branches:
       - master
-    paths-ignore:
-      - '**.md'
-      - 'Dockerfile'
-      - 'docker/**'
 
 jobs:
   build-and-test:
