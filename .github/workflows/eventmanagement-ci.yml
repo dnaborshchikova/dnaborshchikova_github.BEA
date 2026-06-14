@@ -2,6 +2,8 @@ name: .NET CI
 
 on:
   push:
+    paths:
+      - 'EventManagement/**'
     branches:
       - master
       - 'feature-*'
@@ -11,6 +13,8 @@ on:
       - 'docker/**'
 
   pull_request:
+    paths:
+      - 'EventManagement/**'
     branches:
       - master
     paths-ignore:
@@ -32,10 +36,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore Collector/dnaborshchikova_github.Bea.Collector.sln
+        run: dotnet restore EventManagement/dnaborshchikova_github.Bea.EventManagement.slnx
 
       - name: Build
-        run: dotnet build Collector/dnaborshchikova_github.Bea.Collector.sln --configuration Release
+        run: dotnet build EventManagement/dnaborshchikova_github.Bea.EventManagement.slnx --configuration Release
 
       - name: Run tests
-        run: dotnet test Collector/dnaborshchikova_github.Bea.Collector.Tests --no-build --configuration Release --verbosity normal
+        run: dotnet test EventManagement/dnaborshchikova_github.Bea.EventManagement.Tests --no-build --configuration Release --verbosity normal
