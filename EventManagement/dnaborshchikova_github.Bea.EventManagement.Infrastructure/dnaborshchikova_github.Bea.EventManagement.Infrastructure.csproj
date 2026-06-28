@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Interfaces\**" />
+    <EmbeddedResource Remove="Interfaces\**" />
+    <None Remove="Interfaces\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\dnaborshchikova_github.Bea.EventManagement.Core\dnaborshchikova_github.Bea.EventManagement.Core.csproj" />
   </ItemGroup>
 
