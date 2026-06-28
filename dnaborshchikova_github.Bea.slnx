@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Collector/">
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector.Common/dnaborshchikova_github.Bea.Collector.Common.csproj" />
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector.Core/dnaborshchikova_github.Bea.Collector.Core.csproj" />
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector.DataAccess/dnaborshchikova_github.Bea.Collector.DataAccess.csproj" />
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector.Generator/dnaborshchikova_github.Bea.Generator.csproj" />
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector.Parser/dnaborshchikova_github.Bea.Collector.Parser.csproj" />
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector.Processor/dnaborshchikova_github.Bea.Collector.Processor.csproj" />
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector.Sender/dnaborshchikova_github.Bea.Collector.Sender.csproj" />
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector.Tests/dnaborshchikova_github.Bea.Collector.Tests.csproj" />
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector.WorkerService/dnaborshchikova_github.Bea.Collector.WorkerService.csproj" />
+    <Project Path="Collector/dnaborshchikova_github.Bea.Collector/dnaborshchikova_github.Bea.Collector.App.csproj" />
+  </Folder>
+  <Folder Name="/EventManagement/">
+    <Project Path="EventManagement/dnaborshchikova_github.Bea.EventManagement.Core/dnaborshchikova_github.Bea.EventManagement.Core.csproj" />
+    <Project Path="EventManagement/dnaborshchikova_github.Bea.EventManagement.Infrastructure/dnaborshchikova_github.Bea.EventManagement.Infrastructure.csproj" />
+    <Project Path="EventManagement/dnaborshchikova_github.Bea.EventManagement.Tests/dnaborshchikova_github.Bea.EventManagement.Tests.csproj" Id="dfe36d7a-4596-4932-a0f0-de70495e2fb9" />
+    <Project Path="EventManagement/dnaborshchikova_github.Bea.EventManagement.WebApi/dnaborshchikova_github.Bea.EventManagement.WebApi.csproj" />
+  </Folder>
+</Solution>

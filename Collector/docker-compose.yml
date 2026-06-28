@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  collector_db:
+    image: postgres:15
+    container_name: collector_db
+    environment:
+      TZ: "Europe/Moscow"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: Collector
+    ports:
+      - "5432:5432"
+    volumes:
+      - collector_pgdata:/var/lib/postgresql/data
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+  collector_app:
+    build: .
+    container_name: collector_app
+    depends_on:
+      collector_db:
+        condition: service_healthy
+    environment:
+      TZ: "Europe/Moscow"
+      ProcessingSettings__InputFolder: "/app/input"
+      PROCESSING_FOLDER_PATH: /files
+      ConnectionStrings__Default: Host=collector_db;Port=5432;Database=Collector;Username=postgres;Password=postgres
+      ProcessingSettings__RunMode: "OneTime"
+      ASPNETCORE_ENVIRONMENT: Development
+    volumes:
+      - ./dnaborshchikova_github.Bea.Collector.WorkerService/TestData:/app/input
+
+  collector_pgadmin:
+    image: dpage/pgadmin4
+    container_name: collector_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - collector_db
+
+volumes:
+  collector_pgdata:

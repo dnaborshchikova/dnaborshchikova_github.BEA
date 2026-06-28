@@ -1,0 +1,6 @@
+@dnaborshchikova_github.Bea.EventManagement.WebApi_HostAddress = http://localhost:5008
+
+GET {{dnaborshchikova_github.Bea.EventManagement.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

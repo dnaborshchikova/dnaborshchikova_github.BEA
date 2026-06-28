@@ -1,5 +1,5 @@
 ﻿# Stage 1 - build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY dnaborshchikova_github.Bea.Collector.sln ./
@@ -19,7 +19,7 @@ COPY . .
 RUN dotnet publish -c Release -o /app ./dnaborshchikova_github.Bea.Collector.WorkerService/dnaborshchikova_github.Bea.Collector.WorkerService.csproj
 
 # Stage 2
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app .
 ENTRYPOINT ["dotnet", "dnaborshchikova_github.Bea.Collector.WorkerService.dll"]

@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="dnaborshchikova_github.Bea.EventManagement.Core/dnaborshchikova_github.Bea.EventManagement.Core.csproj" Id="8a2c913e-fc0c-4625-a838-ab150fb40b61" />
+  <Project Path="dnaborshchikova_github.Bea.EventManagement.Infrastructure/dnaborshchikova_github.Bea.EventManagement.Infrastructure.csproj" Id="3ad4dd85-4c9d-4234-8273-cfeb31f7bd14" />
+  <Project Path="dnaborshchikova_github.Bea.EventManagement.WebApi/dnaborshchikova_github.Bea.EventManagement.WebApi.csproj" />
+</Solution>
