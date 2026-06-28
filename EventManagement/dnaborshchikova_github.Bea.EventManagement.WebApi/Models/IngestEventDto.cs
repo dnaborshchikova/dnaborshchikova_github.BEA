@@ -19,10 +19,5 @@ namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Models
 
         [Required]
         public string Data { get; set; }
-
-//NICE TO HAVE:
-//Date не из будущего
-//Data валидный JSON(опционально)
-//Id если есть — не empty
     }
 }

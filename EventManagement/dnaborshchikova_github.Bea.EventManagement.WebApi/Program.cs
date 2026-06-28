@@ -22,7 +22,6 @@ builder.Host.UseSerilog((context, configuration) =>
 // Add services to the container.
 
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(options =>
@@ -35,12 +34,10 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
-
-
-builder.Services.AddDbContext<EventManagementDbContext>(options =>
-    options.UseNpgsql(config.GetConnectionString("Default")));
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddDbContext<EventManagementDbContext>(options =>
+    options.UseNpgsql(config.GetConnectionString("Default")));
 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
 {
     builder.Services.AddScoped<IDatabaseInitializer, DevelopmentDatabaseInitializer>();
