@@ -18,7 +18,7 @@ services:
         interval: 5s
         timeout: 5s
         retries: 5
-  eventmanagement:
+  eventmanagement_app:
     build: .
     ports:
       - "5008:8080"
