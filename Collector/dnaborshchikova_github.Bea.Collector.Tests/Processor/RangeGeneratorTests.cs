@@ -40,7 +40,7 @@ namespace dnaborshchikova_github.Bea.Collector.Tests.Processor
 
             //Assert
             ranges.Count.Should().Be(threadCount);
-            ranges.ForEach(r => r.BillEvents.Count.Should().NotBe(0));
+            ranges.ForEach(r => r.SendEvents.Count.Should().NotBe(0));
         }
     }
 }

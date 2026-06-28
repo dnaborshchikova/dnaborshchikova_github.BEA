@@ -9,7 +9,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Controllers
     [Route("api/v1/events")]
     public class EventController : ControllerBase
     {
-        private static IEventService _eventService;
+        private readonly IEventService _eventService;
 
         public EventController(IEventService eventService)
         {

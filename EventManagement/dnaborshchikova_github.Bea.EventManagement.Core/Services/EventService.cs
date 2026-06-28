@@ -5,7 +5,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.Core.Services
 {
     public class EventService : IEventService
     {
-        private static IEventRepository _eventRepository;
+        private readonly IEventRepository _eventRepository;
 
         public EventService(IEventRepository eventRepository)
         {

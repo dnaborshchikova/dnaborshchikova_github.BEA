@@ -5,7 +5,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.Infrastructure
 {
     public class EventRepository : IEventRepository
     {
-        private static EventManagementDbContext _dbContext;
+        private readonly EventManagementDbContext _dbContext;
 
         public EventRepository(EventManagementDbContext dbContext)
         {

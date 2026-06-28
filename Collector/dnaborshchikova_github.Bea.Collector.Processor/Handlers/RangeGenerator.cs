@@ -1,4 +1,5 @@
 ﻿using dnaborshchikova_github.Bea.Collector.Core.Models;
+using System.Text.Json;
 
 namespace dnaborshchikova_github.Bea.Collector.Processor.Handlers
 {
@@ -23,11 +24,28 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Handlers
                     events = billEvents.Where(e => e.OperationDateTime >= dateRanges[i]).ToList();
                 }
 
-                var range = new EventProcessRange(i + 1, events);
+                var sendEvents = GetSendEvents(billEvents);
+                var range = new EventProcessRange(nextRangeIndex, sendEvents);
                 eventRanges.Add(range);
             }
 
             return eventRanges;
+        }
+
+        private static List<SendEvent> GetSendEvents(List<BillEvent> events)
+        {
+            var sendEvents = events.Select(e =>
+            {
+                var billData = e switch
+                {
+                    PaidBillEvent paid => JsonSerializer.Serialize(paid),
+                    CancelledBillEvent cancelled => JsonSerializer.Serialize(cancelled)
+                };
+                var utcTime = DateTime.SpecifyKind(e.OperationDateTime, DateTimeKind.Utc);
+                return new SendEvent(e.Id, utcTime, e.UserId, e.EventType, billData);
+            }).ToList();
+
+            return sendEvents;
         }
 
         private static List<DateTime> GetDataRanges(List<BillEvent> billEvents, int threadCount)

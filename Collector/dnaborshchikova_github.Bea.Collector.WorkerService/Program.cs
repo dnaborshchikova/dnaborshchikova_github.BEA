@@ -11,7 +11,7 @@ using dnaborshchikova_github.Bea.Collector.Parser.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Processors;
 using dnaborshchikova_github.Bea.Collector.Processor.Services;
-using dnaborshchikova_github.Bea.Collector.Sender.Handlers;
+using dnaborshchikova_github.Bea.Collector.Senders;
 using dnaborshchikova_github.Bea.Collector.WorkerService.Models;
 using dnaborshchikova_github.Bea.Collector.WorkerService.Services;
 using dnaborshchikova_github.Bea.Collector.WorkerService.Validators;
@@ -82,7 +82,12 @@ var host = Host.CreateDefaultBuilder(args)
             };
         });
 
-        services.AddScoped<IEventSender, DataBaseSender>();
+        //services.AddScoped<IEventSender, DataBaseSender>();
+        services.AddHttpClient<IEventSender, HttpEventSender>(httpClient =>
+        {
+            httpClient.BaseAddress = new Uri("https://localhost:7121/");
+        });
+
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<IEventProcessor, EventProcessorService>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();
