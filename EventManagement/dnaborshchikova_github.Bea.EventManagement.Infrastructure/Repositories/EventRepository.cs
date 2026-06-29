@@ -1,5 +1,8 @@
-﻿using dnaborshchikova_github.Bea.EventManagement.Core.Models;
-using dnaborshchikova_github.Bea.EventManagement.Core.Interfaces;
+﻿using dnaborshchikova_github.Bea.EventManagement.Core.Interfaces;
+using dnaborshchikova_github.Bea.EventManagement.Core.Models;
+using dnaborshchikova_github.Bea.EventManagement.Core.Models.Exceptions;
+using dnaborshchikova_github.Bea.EventManagement.Infrastructure.ExceptionExtensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace dnaborshchikova_github.Bea.EventManagement.Infrastructure
 {
@@ -12,10 +15,22 @@ namespace dnaborshchikova_github.Bea.EventManagement.Infrastructure
             _dbContext = dbContext;
         }
 
+        public bool IsEventExists(CashRegisterEvent сashRegisterEvent)
+        {
+            return _dbContext.Events.Any(e => e.Id == сashRegisterEvent.Id);
+        }
+
         public async Task SaveAsync(CashRegisterEvent сashRegisterEvent)
         {
-            await _dbContext.Events.AddAsync(сashRegisterEvent);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                _dbContext.Events.Add(сashRegisterEvent);
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (ex.IsDuplicateKey())
+            {
+                throw new DuplicateEventException(сashRegisterEvent.Id);
+            }
         }
     }
 }

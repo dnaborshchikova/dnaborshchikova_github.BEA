@@ -4,6 +4,7 @@ using dnaborshchikova_github.Bea.EventManagement.Infrastructure;
 using dnaborshchikova_github.Bea.EventManagement.Infrastructure.Initializers;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Serilog.Filters;
 using System.Reflection;
 
 var config = new ConfigurationBuilder()
@@ -12,11 +13,12 @@ var config = new ConfigurationBuilder()
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((context, configuration) =>
+builder.Host.UseSerilog((ctx, services, lc) =>
 {
-    configuration
-        .WriteTo.Console()
-        .ReadFrom.Configuration(context.Configuration);
+    lc.ReadFrom.Configuration(ctx.Configuration)
+      .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Database.Command"))
+      .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Update"))
+      .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.ChangeTracking"));
 });
 
 // Add services to the container.

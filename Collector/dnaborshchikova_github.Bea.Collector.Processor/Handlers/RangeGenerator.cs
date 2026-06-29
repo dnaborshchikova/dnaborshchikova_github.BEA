@@ -24,7 +24,7 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Handlers
                     events = billEvents.Where(e => e.OperationDateTime >= dateRanges[i]).ToList();
                 }
 
-                var sendEvents = GetSendEvents(billEvents);
+                var sendEvents = GetSendEvents(events);
                 var range = new EventProcessRange(nextRangeIndex, sendEvents);
                 eventRanges.Add(range);
             }

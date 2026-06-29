@@ -1,6 +1,5 @@
 ﻿using dnaborshchikova_github.Bea.Collector.Core.Interfaces;
 using dnaborshchikova_github.Bea.Collector.Core.Models;
-using dnaborshchikova_github.Bea.Collector.DataAccess.Repositories.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace dnaborshchikova_github.Bea.Collector.Processor.Processors
@@ -8,11 +7,11 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Processors
     public class TaskProcessor : IProcessor
     {
         private readonly ILogger<TaskProcessor> _logger;
-        private readonly IEventSender _dbSender;
+        private readonly IEventSender _sender;
 
-        public TaskProcessor(IEventSender dbSender, ILogger<TaskProcessor> logger)
+        public TaskProcessor(IEventSender sender, ILogger<TaskProcessor> logger)
         {
-            _dbSender = dbSender;
+            _sender = sender;
             _logger = logger;
         }
 
@@ -23,7 +22,7 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Processors
             {
                 try
                 {
-                    await _dbSender.SendAsync(range);
+                    await _sender.SendAsync(range);
                 }
                 catch (Exception ex)
                 {

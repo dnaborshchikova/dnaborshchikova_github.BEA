@@ -27,6 +27,14 @@ namespace dnaborshchikova_github.Bea.Collector.Senders
             {
                 var response = await _httpClient.PostAsJsonAsync("api/v1/events",  sendEvent);
 
+                if (!response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Failed to send event. Status: {Status}, Body: {Body}"
+                        , response.StatusCode, body);
+                    response.EnsureSuccessStatusCode();
+                }
+
                 response.EnsureSuccessStatusCode();
             }
         }

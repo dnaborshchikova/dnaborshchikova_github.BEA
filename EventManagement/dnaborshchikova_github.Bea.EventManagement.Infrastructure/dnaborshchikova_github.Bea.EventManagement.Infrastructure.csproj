@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\dnaborshchikova_github.Bea.EventManagement.Core\dnaborshchikova_github.Bea.EventManagement.Core.csproj" />
   </ItemGroup>
 
