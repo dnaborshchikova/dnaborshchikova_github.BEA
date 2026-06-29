@@ -79,8 +79,12 @@ var host = Host.CreateDefaultBuilder()
                 "ThreadProcessorWithLock" => provider.GetRequiredService<ThreadProcessorWithLock>(),
             };
         });
-        services.AddScoped<IEventSender, MessageQueueSender>();
-        services.AddScoped<IEventSender, DataBaseSender>();
+        //services.AddScoped<IEventSender, MessageQueueSender>();
+        //services.AddScoped<IEventSender, DataBaseSender>();
+        services.AddHttpClient<IEventSender, HttpEventSender>(httpClient =>
+        {
+            httpClient.BaseAddress = new Uri("https://localhost:7121/");
+        });
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();
         services.AddScoped<IEventProcessor, EventProcessorService>();
