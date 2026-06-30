@@ -2,6 +2,7 @@ using dnaborshchikova_github.Bea.EventManagement.Core.Interfaces;
 using dnaborshchikova_github.Bea.EventManagement.Core.Services;
 using dnaborshchikova_github.Bea.EventManagement.Infrastructure;
 using dnaborshchikova_github.Bea.EventManagement.Infrastructure.Initializers;
+using dnaborshchikova_github.Bea.EventManagement.WebApi.Handlers;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Filters;
@@ -37,7 +38,9 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<EventBatchHandler>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+
 builder.Services.AddDbContext<EventManagementDbContext>(options =>
     options.UseNpgsql(config.GetConnectionString("Default")));
 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
@@ -51,7 +54,7 @@ else
 
 var app = builder.Build();
 
-// --- инициализация БД ДО запуска приложения ---
+// Инициализация БД до запуска приложения.
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<EventManagementDbContext>();

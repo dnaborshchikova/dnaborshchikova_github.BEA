@@ -16,7 +16,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.Core.Services
             _logger = logger;
         }
 
-        public async Task CreateAsync(CashRegisterEvent сashRegisterEvent)
+        public async Task SaveEventAsync(CashRegisterEvent сashRegisterEvent)
         {
             try
             {
@@ -27,6 +27,11 @@ namespace dnaborshchikova_github.Bea.EventManagement.Core.Services
             {
                 _logger.LogInformation("Event already exists id={Id}.", сashRegisterEvent.Id);
             }
+        }
+
+        public async Task SaveEventBatchAsync(List<CashRegisterEvent> cashRegisterEvents)
+        {
+            await _eventRepository.SaveBatchAsync(cashRegisterEvents);
         }
     }
 }

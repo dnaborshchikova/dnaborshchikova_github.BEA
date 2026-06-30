@@ -7,6 +7,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.Core.Interfaces
 {
     public interface IEventService
     {
-        Task CreateAsync(CashRegisterEvent сashRegisterEvent);
+        Task SaveEventAsync(CashRegisterEvent сashRegisterEvent);
+        Task SaveEventBatchAsync(List<CashRegisterEvent> сashRegisterEvents);
     }
 }

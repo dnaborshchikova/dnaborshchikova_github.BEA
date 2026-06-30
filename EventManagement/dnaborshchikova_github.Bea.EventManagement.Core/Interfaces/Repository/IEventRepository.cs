@@ -6,5 +6,6 @@ namespace dnaborshchikova_github.Bea.EventManagement.Core.Interfaces
     {
         bool IsEventExists(CashRegisterEvent сashRegisterEvent);
         Task SaveAsync(CashRegisterEvent сashRegisterEvent);
+        Task SaveBatchAsync(List<CashRegisterEvent> сashRegisterEvent);
     }
 }

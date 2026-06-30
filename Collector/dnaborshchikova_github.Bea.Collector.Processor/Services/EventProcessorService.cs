@@ -58,7 +58,12 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Services
                 _logger.LogInformation($"End generate event ranges.");
 
                 var processor = _processor(_appSettings.ProcessingSettings.ProcessType);
+
+                var sw = Stopwatch.StartNew();
                 var isSendCompleted = await processor.ProcessAsync(ranges);
+                sw.Stop();
+                _logger.LogInformation("!!!!! File processed in {Elapsed}", sw.Elapsed);
+
                 await SaveSendResultAsync(isSendCompleted, filePath);
             }
             catch (Exception ex)
