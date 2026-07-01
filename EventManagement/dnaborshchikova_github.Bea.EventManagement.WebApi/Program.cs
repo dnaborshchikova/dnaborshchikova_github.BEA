@@ -3,6 +3,7 @@ using dnaborshchikova_github.Bea.EventManagement.Core.Services;
 using dnaborshchikova_github.Bea.EventManagement.Infrastructure;
 using dnaborshchikova_github.Bea.EventManagement.Infrastructure.Initializers;
 using dnaborshchikova_github.Bea.EventManagement.WebApi.Handlers;
+using dnaborshchikova_github.Bea.EventManagement.WebApi.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Filters;
@@ -14,9 +15,10 @@ var config = new ConfigurationBuilder()
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((ctx, services, lc) =>
+builder.Host.UseSerilog((context, services, lc) =>
 {
-    lc.ReadFrom.Configuration(ctx.Configuration)
+    lc.ReadFrom.Configuration(context.Configuration)
+      .Enrich.FromLogContext()
       .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Database.Command"))
       .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Update"))
       .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.ChangeTracking"));
@@ -73,6 +75,7 @@ if (app.Environment.IsDevelopment())
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseAuthorization();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.MapControllers();
 app.MapHealthChecks("/health");
 

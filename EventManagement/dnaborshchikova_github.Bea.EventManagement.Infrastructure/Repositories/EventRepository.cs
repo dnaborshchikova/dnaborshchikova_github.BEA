@@ -68,25 +68,46 @@ namespace dnaborshchikova_github.Bea.EventManagement.Infrastructure
             try
             {
                 _dbContext.Events.AddRange(events);
-                foreach (var entry in _dbContext.ChangeTracker.Entries<CashRegisterEvent>())
-                {
-                    _logger.LogInformation(
-                        "Id={Id}, State={State}",
-                        entry.Entity.Id,
-                        entry.State);
-                }
 
-                var count = await _dbContext.SaveChangesAsync();
-                _logger.LogInformation("Saved {Count}", count);
+                var saved = await _dbContext.SaveChangesAsync();
 
-                var total = await _dbContext.Events.CountAsync();
-                _logger.LogInformation("Total in DB: {Count}", total);
+                _logger.LogInformation("DB save SUCCESS. Written={Count}", saved);
             }
-            catch (DbUpdateException ex) when (ex.IsDuplicateKey())
+            catch (DbUpdateException ex)
             {
-                // тут батч уже частично записан
-                // просто считаем это "best effort"
+                _logger.LogError("DB save FAILED (duplicate or constraint violation)");
             }
+
+            //try
+            //{
+            //    _dbContext.Events.AddRange(events);
+            //    foreach (var entry in _dbContext.ChangeTracker.Entries<CashRegisterEvent>())
+            //    {
+            //        _logger.LogInformation(
+            //            "Id={Id}, State={State}",
+            //            entry.Entity.Id,
+            //            entry.State);
+            //    }
+
+            //    _logger.LogInformation("SaveChanges START");
+
+            //    var count = await _dbContext.SaveChangesAsync();
+
+            //    _logger.LogInformation("SaveChanges END ({Count})", count);
+
+            //    var total = await _dbContext.Events.CountAsync();
+            //    _logger.LogInformation("Total in DB: {Count}", total);
+            //}
+            //catch (DbUpdateException ex) when (ex.IsDuplicateKey())
+            //{
+            //    // тут батч уже частично записан
+            //    // просто считаем это "best effort"
+            //}
+            //catch (Exception ex)
+            //{
+            //    // тут батч уже частично записан
+            //    // просто считаем это "best effort"
+            //}
         }
     }
 }

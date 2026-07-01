@@ -24,12 +24,12 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Handlers
                     events = billEvents.Where(e => e.OperationDateTime >= dateRanges[i]).ToList();
                 }
 
-                var sendEvents = GetSendEvents(events); //events or billEvents
+                var sendEvents = GetSendEvents(events); //TODO: удалить (остановлено для проверки на сохранение дублей батчей (баг, если billEvents вместо evets)).
                 var range = new EventProcessRange(nextRangeIndex, sendEvents);
                 eventRanges.Add(range);
             }
 
-            eventRanges[1].SendEvents.Add(eventRanges[0].SendEvents[0]);
+            eventRanges[1].SendEvents.Add(eventRanges[0].SendEvents[0]); //TODO: удалить (остановлено для проверки на сохранение дублей в диапазонах (баг)).
 
             return eventRanges;
         }

@@ -2,7 +2,9 @@
 using dnaborshchikova_github.Bea.EventManagement.Core.Models;
 using dnaborshchikova_github.Bea.EventManagement.WebApi.Handlers;
 using dnaborshchikova_github.Bea.EventManagement.WebApi.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Controllers
 {
@@ -42,14 +44,16 @@ namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Controllers
             if (events == null || events.Count == 0)
                 return BadRequest();
 
+            _logger.LogInformation("Batch received. Count={Count}", events.Count);
+
             var batchConvertResult = _eventBatchHandler.ConvertDtoToCashRegisterEvent(events);
+            _logger.LogInformation("Batch validated. Ok={Ok}, Errors={Errors}",
+                batchConvertResult.Events.Count, batchConvertResult.Errors.Count);
 
             if (batchConvertResult.Errors.Count > 0)
             {
                 foreach (var error in batchConvertResult.Errors)
-                {
-                    _logger.LogInformation(error);
-                }
+                    _logger.LogInformation($"Validation error: {error}");
             }
 
             if (batchConvertResult.Events.Count == 0)
@@ -59,8 +63,8 @@ namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Controllers
             }
 
             await _eventService.SaveEventBatchAsync(batchConvertResult.Events);
-            _logger.LogInformation("Batch processed. Valid: {ValidCount}, Errors: {ErrorCount}",
-                batchConvertResult.Events.Count, batchConvertResult.Errors.Count);
+            _logger.LogInformation("Batch saved. Count={Count}", batchConvertResult.Events.Count);
+
             return Ok();
         }
     }
