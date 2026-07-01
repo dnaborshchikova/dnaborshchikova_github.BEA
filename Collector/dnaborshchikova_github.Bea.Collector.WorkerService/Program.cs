@@ -48,9 +48,12 @@ var appSettings = appSettingsService.CreateAppSettings(generatorSettings, proces
 // Настройка Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(config)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("ProcessingId", "global")
     .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Database.Command"))
     .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Update"))
     .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.ChangeTracking"))
+    .Filter.ByExcluding(Matching.FromSource("System.Net.Http.HttpClient"))
     .CreateLogger();
 
 var host = Host.CreateDefaultBuilder(args)

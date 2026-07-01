@@ -3,7 +3,6 @@
     public class RequestLoggingMiddleware
     {
         private static int _counter = 0;
-
         private readonly RequestDelegate _next;
         private readonly ILogger<RequestLoggingMiddleware> _logger;
 

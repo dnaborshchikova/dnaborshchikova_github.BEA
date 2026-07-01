@@ -19,6 +19,7 @@ builder.Host.UseSerilog((context, services, lc) =>
 {
     lc.ReadFrom.Configuration(context.Configuration)
       .Enrich.FromLogContext()
+      .Enrich.WithProperty("RequestId", "global")
       .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Database.Command"))
       .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Update"))
       .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.ChangeTracking"));
