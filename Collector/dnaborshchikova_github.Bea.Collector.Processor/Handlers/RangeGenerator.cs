@@ -29,7 +29,7 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Handlers
                 eventRanges.Add(range);
             }
 
-            eventRanges[1].SendEvents.Add(eventRanges[0].SendEvents[0]); //TODO: удалить (остановлено для проверки на сохранение дублей в диапазонах (баг)).
+            //eventRanges[1].SendEvents.Add(eventRanges[0].SendEvents[0]); //TODO: удалить (остановлено для проверки на сохранение дублей в диапазонах (баг)).
 
             return eventRanges;
         }
