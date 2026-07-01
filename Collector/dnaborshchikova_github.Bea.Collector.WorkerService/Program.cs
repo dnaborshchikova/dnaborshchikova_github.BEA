@@ -88,7 +88,7 @@ var host = Host.CreateDefaultBuilder(args)
         //services.AddScoped<IEventSender, DataBaseSender>();
         services.AddHttpClient<IEventSender, HttpEventSender>(httpClient =>
         {
-            httpClient.BaseAddress = new Uri("https://localhost:7121/");
+            httpClient.BaseAddress = new Uri(config["EventManagement:BaseUrl"]);
         });
 
         services.AddScoped<IParser, CsvParser>();

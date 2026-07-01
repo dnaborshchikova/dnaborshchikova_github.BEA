@@ -29,7 +29,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.Infrastructure.Initializers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, $"Retry {i}: DB not ready");
+                    _logger.LogError(ex, "INIT FAILED on retry {Retry}. REAL ERROR: {Message}", i, ex.ToString());
                     Thread.Sleep(3000);
                 }
             }

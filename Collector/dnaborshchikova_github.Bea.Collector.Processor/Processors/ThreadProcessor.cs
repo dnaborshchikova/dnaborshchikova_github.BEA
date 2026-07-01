@@ -52,7 +52,7 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Processors
                 foreach (var (rangeId, threadId, ex) in exceptions)
                 {
                     _logger.LogError(ex, $"Подробная информация об ошибке в " +
-                        $"ThreadId={Thread.CurrentThread.ManagedThreadId} при обработке RangeId={rangeId}");
+                        $"ThreadId={Thread.CurrentThread.ManagedThreadId} при обработке RangeId={rangeId}. {ex}");
                 }
                 isSendCompleted = false;
             }

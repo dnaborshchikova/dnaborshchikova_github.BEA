@@ -9,10 +9,6 @@ using Serilog;
 using Serilog.Filters;
 using System.Reflection;
 
-var config = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json")
-    .Build();
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, services, lc) =>
@@ -45,7 +41,9 @@ builder.Services.AddScoped<EventBatchHandler>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 
 builder.Services.AddDbContext<EventManagementDbContext>(options =>
-    options.UseNpgsql(config.GetConnectionString("Default")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("Default")
+    ));
 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
 {
     builder.Services.AddScoped<IDatabaseInitializer, DevelopmentDatabaseInitializer>();

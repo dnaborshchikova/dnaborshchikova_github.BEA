@@ -2,9 +2,7 @@
 using dnaborshchikova_github.Bea.EventManagement.Core.Models;
 using dnaborshchikova_github.Bea.EventManagement.WebApi.Handlers;
 using dnaborshchikova_github.Bea.EventManagement.WebApi.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Controllers
 {
