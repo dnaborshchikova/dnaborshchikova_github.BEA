@@ -12,8 +12,7 @@ using dnaborshchikova_github.Bea.Collector.Parser.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Processors;
 using dnaborshchikova_github.Bea.Collector.Processor.Services;
-using dnaborshchikova_github.Bea.Collector.Sender.Handlers;
-using dnaborshchikova_github.Bea.Collector.Sender.Senders;
+using dnaborshchikova_github.Bea.Collector.Senders;
 using dnaborshchikova_github.Bea.Generator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +22,8 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Filters;
 using System.Diagnostics;
+
+//TODO: разделить на классы.
 
 var config = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
@@ -80,8 +81,12 @@ var host = Host.CreateDefaultBuilder()
                 "ThreadProcessorWithLock" => provider.GetRequiredService<ThreadProcessorWithLock>(),
             };
         });
-        services.AddScoped<IEventSender, MessageQueueSender>();
-        services.AddScoped<IEventSender, DataBaseSender>();
+        //services.AddScoped<IEventSender, MessageQueueSender>();
+        //services.AddScoped<IEventSender, DataBaseSender>();
+        services.AddHttpClient<IEventSender, HttpEventSender>(httpClient =>
+        {
+            httpClient.BaseAddress = new Uri(config["EventManagement:BaseUrl"]); // TODO: исправить получение из config.
+        });
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();
         services.AddScoped<IEventProcessor, EventProcessorService>();

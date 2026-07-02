@@ -1,4 +1,5 @@
-﻿using dnaborshchikova_github.Bea.Collector.Core.Interfaces;
+﻿using Azure.Core;
+using dnaborshchikova_github.Bea.Collector.Core.Interfaces;
 using dnaborshchikova_github.Bea.Collector.Core.Models;
 using dnaborshchikova_github.Bea.Collector.Core.Models.Settings;
 using dnaborshchikova_github.Bea.Collector.DataAccess.Repositories.Interfaces;
@@ -33,11 +34,15 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Services
 
         public async Task ProcessAsync()
         {
-            _logger.LogInformation($"Start processing {DateTime.Now}.");
-            var filePaths = _fileSelectionStrategy.GetFiles();
-            foreach (var filePath in filePaths)
+            var processingId = Guid.NewGuid().ToString("N")[..8];
+            using (_logger.BeginScope(new Dictionary<string, object> { ["ProcessingId"] = $"{processingId}" }))
             {
-                await ProcessFile(filePath);
+                _logger.LogInformation($"Start processing file");
+                var filePaths = _fileSelectionStrategy.GetFiles();
+                foreach (var filePath in filePaths)
+                {
+                    await ProcessFile(filePath);
+                }
             }
         }
 
@@ -48,17 +53,18 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Services
 
             try
             {
-                _logger.LogInformation($"Parse file. File path: {filePath}");
+                _logger.LogInformation($"Parse file File path={filePath}");
                 var billEvents = _parser.Parse(filePath).OrderBy(e => e.OperationDateTime).ToList();
 
-                _logger.LogInformation($"Start generate event ranges.");
+                _logger.LogInformation($"Start generate event ranges");
                 var ranges = RangeGenerator.GenerateParts(billEvents, _appSettings.ProcessingSettings.ThreadCount);
-                ranges.ForEach(r => _logger.LogInformation($"Generate event range end. Range id: {r.Id}." +
-                    $"Events count: {r.BillEvents.Count}."));
-                _logger.LogInformation($"End generate event ranges.");
+                ranges.ForEach(r => _logger.LogInformation("GenerateRange End RangeId={RangeId} Count={Count}"
+                    , r.Id, r.SendEvents.Count));
+                _logger.LogInformation($"End generate event ranges");
 
                 var processor = _processor(_appSettings.ProcessingSettings.ProcessType);
                 var isSendCompleted = await processor.ProcessAsync(ranges);
+
                 await SaveSendResultAsync(isSendCompleted, filePath);
             }
             catch (Exception ex)
@@ -68,8 +74,8 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Services
             finally
             {
                 stopwatch.Stop();
-                _logger.LogInformation($"End processing {DateTime.Now}." +
-                    $"Total processing time: {stopwatch.ElapsedMilliseconds} ms.");
+                _logger.LogInformation($"End processing " +
+                    $"Total processing time={stopwatch.ElapsedMilliseconds} ms");
             }
         }
 

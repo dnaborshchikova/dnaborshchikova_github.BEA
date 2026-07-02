@@ -23,10 +23,8 @@ namespace dnaborshchikova_github.Bea.Collector.Sender.Handlers
             stopwatch.Start();
             Thread.Sleep(20);
 
-            foreach (var billEvent in range.BillEvents)
+            foreach (var sendEvent in range.SendEvents)
             {
-                var sendEvent = GetSendEvent(billEvent);
-
                 const int maxRetries = 3;
                 for (var attempt = 1; attempt <= maxRetries; attempt++)
                 {
@@ -55,18 +53,6 @@ namespace dnaborshchikova_github.Bea.Collector.Sender.Handlers
         public Task SendAsync(EventProcessRange range)
         {
             throw new NotImplementedException();
-        }
-
-        private SendEvent GetSendEvent(BillEvent billEvent)
-        {
-            var billData = billEvent switch
-            {
-                PaidBillEvent paid => JsonSerializer.Serialize(paid),
-                CancelledBillEvent cancelled => JsonSerializer.Serialize(cancelled)
-            };
-
-            return new SendEvent(billEvent.Id, billEvent.OperationDateTime, billEvent.UserId
-                , billEvent.EventType, billData);
         }
     }
 }

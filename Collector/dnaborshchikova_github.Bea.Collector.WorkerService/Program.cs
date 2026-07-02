@@ -11,7 +11,7 @@ using dnaborshchikova_github.Bea.Collector.Parser.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Processors;
 using dnaborshchikova_github.Bea.Collector.Processor.Services;
-using dnaborshchikova_github.Bea.Collector.Sender.Handlers;
+using dnaborshchikova_github.Bea.Collector.Senders;
 using dnaborshchikova_github.Bea.Collector.WorkerService.Models;
 using dnaborshchikova_github.Bea.Collector.WorkerService.Services;
 using dnaborshchikova_github.Bea.Collector.WorkerService.Validators;
@@ -19,6 +19,8 @@ using dnaborshchikova_github.Bea.Generator;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Filters;
+
+// TODO: разделить на классы.
 
 var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
@@ -48,9 +50,12 @@ var appSettings = appSettingsService.CreateAppSettings(generatorSettings, proces
 // Настройка Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(config)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("ProcessingId", "global")
     .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Database.Command"))
     .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Update"))
     .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.ChangeTracking"))
+    .Filter.ByExcluding(Matching.FromSource("System.Net.Http.HttpClient"))
     .CreateLogger();
 
 var host = Host.CreateDefaultBuilder(args)
@@ -82,7 +87,12 @@ var host = Host.CreateDefaultBuilder(args)
             };
         });
 
-        services.AddScoped<IEventSender, DataBaseSender>();
+        //services.AddScoped<IEventSender, DataBaseSender>();
+        services.AddHttpClient<IEventSender, HttpEventSender>(httpClient =>
+        {
+            httpClient.BaseAddress = new Uri(config["EventManagement:BaseUrl"]); // TODO: исправить получение из config.
+        });
+
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<IEventProcessor, EventProcessorService>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();

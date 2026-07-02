@@ -8,12 +8,12 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Processors
 {
     public class ThreadProcessor : IProcessor
     {
-        private readonly IEventSender _dbSender;
+        private readonly IEventSender _sender;
         private readonly ILogger<ThreadProcessor> _logger;
 
-        public ThreadProcessor(ILogger<ThreadProcessor> logger, IEventSender dbSender)
+        public ThreadProcessor(ILogger<ThreadProcessor> logger, IEventSender sender)
         {
-            _dbSender = dbSender;
+            _sender = sender;
             _logger = logger;
         }
 
@@ -28,7 +28,7 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Processors
                 {
                     try
                     {
-                        _dbSender.Send(range);
+                        _sender.Send(range);
                     }
                     catch (Exception ex)
                     {
@@ -52,7 +52,7 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Processors
                 foreach (var (rangeId, threadId, ex) in exceptions)
                 {
                     _logger.LogError(ex, $"Подробная информация об ошибке в " +
-                        $"ThreadId={Thread.CurrentThread.ManagedThreadId} при обработке RangeId={rangeId}");
+                        $"ThreadId={Thread.CurrentThread.ManagedThreadId} при обработке RangeId={rangeId}. {ex}");
                 }
                 isSendCompleted = false;
             }
