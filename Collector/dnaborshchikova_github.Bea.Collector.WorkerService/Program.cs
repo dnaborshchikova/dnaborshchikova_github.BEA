@@ -20,6 +20,8 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Filters;
 
+// TODO: разделить на классы.
+
 var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -88,7 +90,7 @@ var host = Host.CreateDefaultBuilder(args)
         //services.AddScoped<IEventSender, DataBaseSender>();
         services.AddHttpClient<IEventSender, HttpEventSender>(httpClient =>
         {
-            httpClient.BaseAddress = new Uri(config["EventManagement:BaseUrl"]);
+            httpClient.BaseAddress = new Uri(config["EventManagement:BaseUrl"]); // TODO: исправить получение из config.
         });
 
         services.AddScoped<IParser, CsvParser>();

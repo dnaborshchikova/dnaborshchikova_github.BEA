@@ -23,6 +23,8 @@ using Serilog;
 using Serilog.Filters;
 using System.Diagnostics;
 
+//TODO: разделить на классы.
+
 var config = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .Build();
@@ -83,7 +85,7 @@ var host = Host.CreateDefaultBuilder()
         //services.AddScoped<IEventSender, DataBaseSender>();
         services.AddHttpClient<IEventSender, HttpEventSender>(httpClient =>
         {
-            httpClient.BaseAddress = new Uri("https://localhost:7121/");
+            httpClient.BaseAddress = new Uri(config["EventManagement:BaseUrl"]); // TODO: исправить получение из config.
         });
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();
