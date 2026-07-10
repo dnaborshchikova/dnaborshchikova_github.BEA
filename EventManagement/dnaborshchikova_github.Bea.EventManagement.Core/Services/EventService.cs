@@ -1,6 +1,5 @@
 ﻿using dnaborshchikova_github.Bea.EventManagement.Core.Interfaces;
 using dnaborshchikova_github.Bea.EventManagement.Core.Models;
-using dnaborshchikova_github.Bea.EventManagement.Core.Models.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace dnaborshchikova_github.Bea.EventManagement.Core.Services

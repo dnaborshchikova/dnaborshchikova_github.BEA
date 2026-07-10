@@ -1,5 +1,7 @@
 using dnaborshchikova_github.Bea.EventManagement.Core.Interfaces;
+using dnaborshchikova_github.Bea.EventManagement.Core.Mappers;
 using dnaborshchikova_github.Bea.EventManagement.Core.Services;
+using dnaborshchikova_github.Bea.EventManagement.Core.Validators;
 using dnaborshchikova_github.Bea.EventManagement.Infrastructure;
 using dnaborshchikova_github.Bea.EventManagement.Infrastructure.Initializers;
 using dnaborshchikova_github.Bea.EventManagement.WebApi.Handlers;
@@ -39,6 +41,8 @@ builder.Services.AddHealthChecks();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<EventBatchHandler>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<ICashRegisterEventDtoValidator, CashRegisterEventDtoValidator>();
+builder.Services.AddScoped<ICashRegisterEventMapper, CashRegisterEventMapper>();
 
 builder.Services.AddDbContext<EventManagementDbContext>(options =>
     options.UseNpgsql(

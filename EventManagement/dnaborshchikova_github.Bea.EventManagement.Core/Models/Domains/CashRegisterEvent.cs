@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace dnaborshchikova_github.Bea.EventManagement.Core.Models
+﻿namespace dnaborshchikova_github.Bea.EventManagement.Core.Models
 {
     public class CashRegisterEvent
     {

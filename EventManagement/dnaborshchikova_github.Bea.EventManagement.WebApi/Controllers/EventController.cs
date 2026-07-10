@@ -1,7 +1,6 @@
-﻿using dnaborshchikova_github.Bea.EventManagement.Core.Interfaces;
-using dnaborshchikova_github.Bea.EventManagement.Core.Models;
+﻿using dnaborshchikova_github.Bea.EventManagement.Core.Models;
+using dnaborshchikova_github.Bea.EventManagement.Core.Services;
 using dnaborshchikova_github.Bea.EventManagement.WebApi.Handlers;
-using dnaborshchikova_github.Bea.EventManagement.WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Controllers
@@ -23,7 +22,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> IngestEventRequest([FromBody] IngestEventDto ingestEventDto)
+        public async Task<IActionResult> IngestEventRequest([FromBody] CashRegisterEventDto ingestEventDto)
         {
             if (ingestEventDto == null)
                 return BadRequest("No events provided");
@@ -37,7 +36,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Controllers
         }
 
         [HttpPost("batch")]
-        public async Task<IActionResult> IngestEventBatch([FromBody] List<IngestEventDto> events)
+        public async Task<IActionResult> IngestEventBatch([FromBody] List<CashRegisterEventDto> events)
         {
             if (events == null || events.Count == 0)
                 return BadRequest();

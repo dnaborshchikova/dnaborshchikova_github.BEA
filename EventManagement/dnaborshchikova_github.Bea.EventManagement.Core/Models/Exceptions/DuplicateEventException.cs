@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace dnaborshchikova_github.Bea.EventManagement.Core.Models.Exceptions
+﻿namespace dnaborshchikova_github.Bea.EventManagement.Core.Models
 {
     public class DuplicateEventException : Exception
     {

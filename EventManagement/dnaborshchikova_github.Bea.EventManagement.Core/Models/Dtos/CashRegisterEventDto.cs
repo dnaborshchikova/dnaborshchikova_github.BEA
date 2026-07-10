@@ -1,22 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Models
+namespace dnaborshchikova_github.Bea.EventManagement.Core.Models
 {
-    public class IngestEventDto
+    public class CashRegisterEventDto
     {
-        [Required]
         public Guid Id { get; set; }
-
-        [Required]
         public DateTime Date { get; set; }
-
-        [Required]
         public Guid UserId { get; set; }
-
-        [Required]
         public string EventType { get; set; }
-
-        [Required]
         public string Data { get; set; }
     }
 }
