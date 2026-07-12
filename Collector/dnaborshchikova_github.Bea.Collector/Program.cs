@@ -12,7 +12,7 @@ using dnaborshchikova_github.Bea.Collector.Parser.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Processors;
 using dnaborshchikova_github.Bea.Collector.Processor.Services;
-using dnaborshchikova_github.Bea.Collector.Senders;
+using dnaborshchikova_github.Bea.Collector.Sender;
 using dnaborshchikova_github.Bea.Generator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -83,9 +83,14 @@ var host = Host.CreateDefaultBuilder()
         });
         //services.AddScoped<IEventSender, MessageQueueSender>();
         //services.AddScoped<IEventSender, DataBaseSender>();
-        services.AddHttpClient<IEventSender, HttpEventSender>(httpClient =>
+        services.AddHttpClient("EventManagement", client =>
         {
-            httpClient.BaseAddress = new Uri(config["EventManagement:BaseUrl"]); // TODO: исправить получение из config.
+            client.BaseAddress = new Uri(config["EventManagement:BaseUrl"]);
+        });
+        services.AddScoped<IEventsClient>(sp =>
+        {
+            var httpClient = sp.GetRequiredService<HttpClient>();
+            return new EventsClient(config["EventManagement:BaseUrl"], httpClient);
         });
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();

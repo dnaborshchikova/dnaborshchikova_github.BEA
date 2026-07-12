@@ -11,6 +11,7 @@ using dnaborshchikova_github.Bea.Collector.Parser.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Processors;
 using dnaborshchikova_github.Bea.Collector.Processor.Services;
+using dnaborshchikova_github.Bea.Collector.Sender;
 using dnaborshchikova_github.Bea.Collector.Senders;
 using dnaborshchikova_github.Bea.Collector.WorkerService.Models;
 using dnaborshchikova_github.Bea.Collector.WorkerService.Services;
@@ -88,10 +89,8 @@ var host = Host.CreateDefaultBuilder(args)
         });
 
         //services.AddScoped<IEventSender, DataBaseSender>();
-        services.AddHttpClient<IEventSender, HttpEventSender>(httpClient =>
-        {
-            httpClient.BaseAddress = new Uri(config["EventManagement:BaseUrl"]); // TODO: исправить получение из config.
-        });
+        services.AddScoped<IEventSender, ApiSender>();
+        
 
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<IEventProcessor, EventProcessorService>();
@@ -99,7 +98,16 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddScoped<IFileSelectionStrategy, WorkerFileSelectionStrategy>();
         services.AddScoped<AppRunner>();
 
-        // Настройка подключения к базе данных
+        services.AddHttpClient("EventManagement", client =>
+        {
+            client.BaseAddress = new Uri(config["EventManagement:BaseUrl"]);
+        });
+        services.AddScoped<IEventsClient>(sp =>
+        {
+            var httpClient = sp.GetRequiredService<HttpClient>();
+            return new EventsClient(config["EventManagement:BaseUrl"], httpClient);
+        });
+
         services.AddDbContextFactory<CollectorDbContext>(options =>
         {
             options.UseNpgsql(config.GetConnectionString("Default"),
