@@ -1,129 +1,68 @@
-﻿//using dnaborshchikova_github.Bea.Collector.Senders;
-//using Microsoft.Extensions.Logging.Abstractions;
-//using Moq;
-//using Moq.Protected;
-//using System.Net;
-//using Xunit;
-//using dnaborshchikova_github.Bea.Collector.Core.Models;
-//using System.Text.Json;
+﻿using dnaborshchikova_github.Bea.Collector.Senders;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using Xunit;
+using dnaborshchikova_github.Bea.Collector.Core.Models;
+using dnaborshchikova_github.Bea.Collector.Sender;
 
-//namespace dnaborshchikova_github.Bea.Collector.Tests.Sender
-//{
-//    public class HttpEventSenderTests
-//    {
-//        [Fact]
-//        public async Task SendAsync_ShouldSendEventsBatchWithCorrectPayload()
-//        {
-//            // Arrange.
-//            var logger = NullLogger<HttpEventSender>.Instance;
+namespace dnaborshchikova_github.Bea.Collector.Tests.Sender
+{
+    public class ApiSenderTests
+    {
+        [Fact]
+        public async Task SendAsync_ShouldSendEventsBatch()
+        {
+            // Arrange.
+            var logger = NullLogger<ApiSender>.Instance;
+            var client = new Mock<IEventsClient>();
+            client
+                .Setup(x => x.BatchAsync(It.IsAny<IEnumerable<CashRegisterEventDto>>()))
+                .Returns(Task.CompletedTask);
+            var apiSender = new ApiSender(client.Object, logger);
 
-//            var response = new HttpResponseMessage(HttpStatusCode.OK);
-//            HttpRequestMessage? capturedRequest = null;
-//            var messageHandler = new Mock<HttpMessageHandler>();
-//            messageHandler.Protected().Setup<Task<HttpResponseMessage>>(
-//                "SendAsync", ItExpr.Is<HttpRequestMessage>(r => r.Method == HttpMethod.Post
-//                    && r.RequestUri == new Uri("https://test.com/api/v1/events/batch")), ItExpr.IsAny<CancellationToken>())
-//                 .Callback<HttpRequestMessage, CancellationToken>((request, _) =>
-//                 {
-//                     capturedRequest = request;
-//                 })
-//                .ReturnsAsync(response);
-//            var client = CreateHttpClient(messageHandler);
-//            var sender = new HttpEventSender(client, logger);
-//            var range = GetEventProcessRange();
+            var eventRange = GetEventProcessRange();
 
-//            // Act.
-//            await sender.SendAsync(range);
+            // Act.
+            await apiSender.SendAsync(eventRange);
 
-//            // Assert.
-//            messageHandler.Protected().Verify("SendAsync", Times.Once()
-//                , ItExpr.Is<HttpRequestMessage>(r => r.Method == HttpMethod.Post 
-//                    && r.RequestUri == new Uri("https://test.com/api/v1/events/batch")), ItExpr.IsAny<CancellationToken>());
+            // Assert.
+            client.Verify(x 
+                => x.BatchAsync(It.Is<IEnumerable<CashRegisterEventDto>>(events => events.Count() == 1)), Times.Once);
+        }
 
-//            Assert.NotNull(capturedRequest);
-//            var body = await capturedRequest.Content.ReadAsStringAsync();
-//            var events = JsonSerializer.Deserialize<List<SendEvent>>(body);
-//            Assert.NotNull(events);
-//            Assert.Equal(1, events.Count);
+        [Fact]
+        public async Task SendAsync_ShouldThrow_WhenApiFails()
+        {
+            // Arrange.
+            var logger = NullLogger<ApiSender>.Instance;
+            var client = new Mock<IEventsClient>();
+            client
+                .Setup(x => x.BatchAsync(It.IsAny<IEnumerable<CashRegisterEventDto>>()))
+                .ThrowsAsync(new ApiException("Server error", 500, "", null, null));
+            var sender = new ApiSender(client.Object, logger);
+            var eventRange = GetEventProcessRange();
 
-//            var sendEvent = range.SendEvents.First();
-//            var actualEvent = events[0];
+            // Act.
+            var exception = await Record.ExceptionAsync(() => sender.SendAsync(eventRange));
 
-//            Assert.Equal(sendEvent.Id, actualEvent.Id);
-//            Assert.Equal(sendEvent.UserId, actualEvent.UserId);
-//            Assert.Equal(sendEvent.Date, actualEvent.Date);
-//            Assert.Equal(sendEvent.EventType, actualEvent.EventType);
-//            Assert.Equal(sendEvent.Data, actualEvent.Data);
-//        }
+            // Assert.
+            Assert.NotNull(exception);
+            Assert.IsType<ApiException>(exception);
+        }
 
-//        [Fact]
-//        public async Task SendAsync_ShouldCompleteSuccessfully_WhenResponseIsSuccessful()
-//        {
-//            // Arragne.
-//            var logger = NullLogger<HttpEventSender>.Instance;
+        #region Helper методы
 
-//            var response = new HttpResponseMessage(HttpStatusCode.OK);
-//            var messageHandler = new Mock<HttpMessageHandler>();
-//            messageHandler.Protected().Setup<Task<HttpResponseMessage>>(
-//                "SendAsync", ItExpr.Is<HttpRequestMessage>(r => r.Method == HttpMethod.Post
-//                    && r.RequestUri == new Uri("https://test.com/api/v1/events/batch")), ItExpr.IsAny<CancellationToken>())
-//                .ReturnsAsync(response);
-//            var client = CreateHttpClient(messageHandler);
-//            var sender = new HttpEventSender(client, logger);
-//            var range = GetEventProcessRange();
+        private EventProcessRange GetEventProcessRange()
+        {
+            var sendEvents = new List<SendEvent>()
+            {
+                new SendEvent(Guid.NewGuid(), DateTime.UtcNow, Guid.NewGuid(), "bill_payed", "{\"Data\":\"Event 1 Data\"}"),
+            };
+            var range = new EventProcessRange(1, sendEvents);
 
-//            // Act.
-//            var exception = await Record.ExceptionAsync(() => sender.SendAsync(range));
+            return range;
+        }
 
-//            // Assert.
-//            Assert.Null(exception);
-//        }
-
-//        [Fact]
-//        public async Task SendAsync_ShouldThrowHttpRequestException_WhenResponseFails()
-//        {
-//            // Arragne.
-//            var logger = NullLogger<HttpEventSender>.Instance;
-
-//            var response = new HttpResponseMessage(HttpStatusCode.NotFound);
-//            var messageHandler = new Mock<HttpMessageHandler>();
-//            messageHandler.Protected().Setup<Task<HttpResponseMessage>>(
-//                "SendAsync", ItExpr.Is<HttpRequestMessage>(r => r.Method == HttpMethod.Post
-//                    && r.RequestUri == new Uri("https://test.com/api/v1/events/batch")), ItExpr.IsAny<CancellationToken>())
-//                .ReturnsAsync(response);
-//            var client = CreateHttpClient(messageHandler);
-//            var sender = new HttpEventSender(client, logger);
-//            var range = GetEventProcessRange();
-
-//            // Act.
-//            var exception = await Record.ExceptionAsync(() => sender.SendAsync(range));
-
-//            // Assert.
-//            Assert.NotNull(exception);
-//            Assert.IsType<HttpRequestException>(exception);
-//        }
-
-//        #region Helper методы
-
-//        private EventProcessRange GetEventProcessRange()
-//        {
-//            var sendEvents = new List<SendEvent>()
-//            {
-//                new SendEvent(Guid.NewGuid(), DateTime.UtcNow, Guid.NewGuid(), "bill_payed", "{\"Data\":\"Event 1 Data\"}"),
-//            };
-//            var range = new EventProcessRange(1, sendEvents);
-
-//            return range;
-//        }
-
-//        private HttpClient CreateHttpClient(Mock<HttpMessageHandler> messageHandler)
-//        {
-//            return new HttpClient(messageHandler.Object)
-//            {
-//                BaseAddress = new Uri("https://test.com/")
-//            };
-//        }
-
-//        #endregion
-//    }
-//}
+        #endregion
+    }
+}
