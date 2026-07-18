@@ -21,23 +21,12 @@ namespace dnaborshchikova_github.Bea.EventManagement.WebApi.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> IngestEventRequest([FromBody] CashRegisterEventDto ingestEventDto)
-        {
-            if (ingestEventDto == null)
-                return BadRequest("No events provided");
-
-            var cashRegisterEvent = new CashRegisterEvent(ingestEventDto.Id, ingestEventDto.Date
-                , ingestEventDto.UserId, ingestEventDto.EventType, ingestEventDto.Data);
-
-            await _eventService.SaveEventAsync(cashRegisterEvent);
-
-            return Ok();
-        }
-
         [HttpPost("batch")]
         public async Task<IActionResult> IngestEventBatch([FromBody] List<CashRegisterEventDto> events)
         {
+            //await Task.Delay(10000); // TODO: удалить, оставлено для имитации бага. 
+            //return StatusCode(500); // TODO: удалить, оставлено для имитации бага. 
+
             if (events == null || events.Count == 0)
                 return BadRequest();
 

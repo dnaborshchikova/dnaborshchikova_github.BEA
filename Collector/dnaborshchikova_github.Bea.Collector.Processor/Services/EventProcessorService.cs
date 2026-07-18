@@ -58,9 +58,7 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Services
 
                 _logger.LogInformation($"Start generate event ranges");
                 var ranges = RangeGenerator.GenerateParts(billEvents, _appSettings.ProcessingSettings.ThreadCount);
-                ranges.ForEach(r => _logger.LogInformation("GenerateRange End RangeId={RangeId} Count={Count}"
-                    , r.Id, r.SendEvents.Count));
-                _logger.LogInformation($"End generate event ranges");
+                _logger.LogInformation($"End generate event ranges. Total range count {ranges}, total events count {billEvents}");
 
                 var processor = _processor(_appSettings.ProcessingSettings.ProcessType);
                 var isSendCompleted = await processor.ProcessAsync(ranges);

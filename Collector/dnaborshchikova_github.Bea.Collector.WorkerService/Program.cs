@@ -18,6 +18,10 @@ using dnaborshchikova_github.Bea.Collector.WorkerService.Services;
 using dnaborshchikova_github.Bea.Collector.WorkerService.Validators;
 using dnaborshchikova_github.Bea.Generator;
 using Microsoft.EntityFrameworkCore;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Retry;
+using Polly.Timeout;
 using Serilog;
 using Serilog.Filters;
 
@@ -90,23 +94,44 @@ var host = Host.CreateDefaultBuilder(args)
 
         //services.AddScoped<IEventSender, DataBaseSender>();
         services.AddScoped<IEventSender, ApiSender>();
-        
+        services.AddHttpClient("EventManagement", client =>
+        {
+            client.BaseAddress = new Uri(config["EventManagement:BaseUrl"]);
+        })
+        .AddResilienceHandler("event-policy", builder =>
+        {
+            builder.AddRetry(new RetryStrategyOptions<HttpResponseMessage>
+            {
+                MaxRetryAttempts = 3,
+                MaxDelay = TimeSpan.FromSeconds(1),
+                BackoffType = DelayBackoffType.Exponential
+            });
+
+            builder.AddTimeout(new TimeoutStrategyOptions
+            {
+                Timeout = TimeSpan.FromSeconds(5)
+            });
+
+            builder.AddCircuitBreaker(new CircuitBreakerStrategyOptions<HttpResponseMessage>
+            {
+                FailureRatio = 0.5,
+                MinimumThroughput = 10,
+                SamplingDuration = TimeSpan.FromSeconds(30),
+                BreakDuration = TimeSpan.FromSeconds(30)
+            });
+        });
+        services.AddScoped<IEventsClient>(sp =>
+        {
+            var factory = sp.GetRequiredService<IHttpClientFactory>();
+            var client = factory.CreateClient("EventManagement");
+            return new EventsClient(config["EventManagement:BaseUrl"], client);
+        });
 
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<IEventProcessor, EventProcessorService>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();
         services.AddScoped<IFileSelectionStrategy, WorkerFileSelectionStrategy>();
         services.AddScoped<AppRunner>();
-
-        services.AddHttpClient("EventManagement", client =>
-        {
-            client.BaseAddress = new Uri(config["EventManagement:BaseUrl"]);
-        });
-        services.AddScoped<IEventsClient>(sp =>
-        {
-            var httpClient = sp.GetRequiredService<HttpClient>();
-            return new EventsClient(config["EventManagement:BaseUrl"], httpClient);
-        });
 
         services.AddDbContextFactory<CollectorDbContext>(options =>
         {
