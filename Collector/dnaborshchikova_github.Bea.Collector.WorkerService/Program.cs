@@ -103,8 +103,10 @@ var host = Host.CreateDefaultBuilder(args)
             builder.AddRetry(new RetryStrategyOptions<HttpResponseMessage>
             {
                 MaxRetryAttempts = 3,
-                MaxDelay = TimeSpan.FromSeconds(1),
-                BackoffType = DelayBackoffType.Exponential
+                Delay = TimeSpan.FromSeconds(1),
+                BackoffType = DelayBackoffType.Exponential,
+                ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+                                        .HandleResult(r => (int)r.StatusCode >= 500)
             });
 
             builder.AddTimeout(new TimeoutStrategyOptions
