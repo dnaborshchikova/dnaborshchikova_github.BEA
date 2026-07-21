@@ -4,11 +4,11 @@ using dnaborshchikova_github.Bea.Collector.Core.Models.Settings;
 using dnaborshchikova_github.Bea.Collector.Processor.Services;
 using dnaborshchikova_github.Bea.Collector.DataAccess.Repositories.Interfaces;
 using dnaborshchikova_github.Bea.Collector.Tests.Processor.Builders;
-using dnaborshchikova_github.Bea.Collector.Tests.Processor.Factories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
+using dnaborshchikova_github.Bea.Collector.Tests.Processor.Factories;
 
 namespace dnaborshchikova_github.Bea.Collector.Tests.Processor
 {

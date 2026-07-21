@@ -31,10 +31,11 @@ services:
       ProcessingSettings__InputFolder: "/app/input"
       PROCESSING_FOLDER_PATH: /files
       ConnectionStrings__Default: Host=collector_db;Port=5432;Database=Collector;Username=postgres;Password=postgres
+      EventManagement__BaseUrl: http://eventmanagement_app:8080/
       ProcessingSettings__RunMode: "OneTime"
       ASPNETCORE_ENVIRONMENT: Development
     volumes:
-      - ./dnaborshchikova_github.Bea.Collector.WorkerService/TestData:/app/input
+      - ./Collector/dnaborshchikova_github.Bea.Collector.WorkerService/TestData:/app/input
 
   collector_pgadmin:
     image: dpage/pgadmin4
