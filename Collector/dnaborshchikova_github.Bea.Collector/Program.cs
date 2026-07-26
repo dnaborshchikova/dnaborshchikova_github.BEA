@@ -82,7 +82,6 @@ var host = Host.CreateDefaultBuilder()
                 "ThreadProcessorWithLock" => provider.GetRequiredService<ThreadProcessorWithLock>(),
             };
         });
-        //services.AddScoped<IEventSender, DataBaseSender>();
         services.AddHttpClient("EventManagement", client =>
         {
             client.BaseAddress = new Uri(config["EventManagement:BaseUrl"]);
@@ -93,18 +92,8 @@ var host = Host.CreateDefaultBuilder()
             return new EventsClient(config["EventManagement:BaseUrl"], httpClient);
         });
         services.AddScoped<IEventSender, MessageQueueSender>();
-        //services.AddMassTransit(x =>
-        //{
-        //    x.UsingRabbitMq((context, config) => // TODO: исправить получение из config.
-        //    {
-        //        config.Host("localhost", h =>
-        //        {
-        //            h.Username("guest");
-        //            h.Password("guest");
-        //        });
-        //    });
-        //});
-
+        services.AddScoped<IEventSender, ApiSender>();
+        services.AddScoped<IEventSender, DataBaseSender>();
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();
         services.AddScoped<IEventProcessor, EventProcessorService>();

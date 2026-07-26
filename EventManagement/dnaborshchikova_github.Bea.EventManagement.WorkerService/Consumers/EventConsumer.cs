@@ -11,8 +11,6 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
     public class EventConsumer
     {
         private readonly IConnection _connection;
-        //private readonly IEventService _eventService;
-        //private readonly ICashRegisterEventMapper _cashRegisterEventMapper;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<EventConsumer> _logger;
 
@@ -21,8 +19,6 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
         {
             _connection = connection;
             _serviceScopeFactory = serviceScopeFactory;
-            //_eventService = eventService;
-            //_cashRegisterEventMapper = cashRegisterEventMapper;
             _logger = logger;
         }
 
@@ -39,10 +35,12 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
                 var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
                 var cashRegisterEventDto = JsonSerializer.Deserialize<CashRegisterEventDto>(message);
 
-                var cashRegisterEventMapper = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<ICashRegisterEventMapper>();
+                var cashRegisterEventMapper = _serviceScopeFactory
+                    .CreateScope().ServiceProvider.GetRequiredService<ICashRegisterEventMapper>();
                 var cashRegisterEvent = cashRegisterEventMapper.ToDomain(cashRegisterEventDto);
 
-                var eventService = _serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<IEventService>();
+                var eventService = _serviceScopeFactory
+                    .CreateScope().ServiceProvider.GetRequiredService<IEventService>();
                 await eventService.SaveEventAsync(cashRegisterEvent);
 
                 await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
