@@ -4,6 +4,6 @@ namespace dnaborshchikova_github.Bea.EventManagement.Core.Mappers
 {
     public interface ICashRegisterEventMapper
     {
-        CashRegisterEvent ToDomain(CashRegisterEventDto ingestEventDto);
+        CashRegisterEvent ToDomain(CashRegisterEventDto eventDto);
     }
 }

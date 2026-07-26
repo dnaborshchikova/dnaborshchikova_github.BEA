@@ -13,6 +13,7 @@ using dnaborshchikova_github.Bea.Collector.Processor.Handlers;
 using dnaborshchikova_github.Bea.Collector.Processor.Processors;
 using dnaborshchikova_github.Bea.Collector.Processor.Services;
 using dnaborshchikova_github.Bea.Collector.Sender;
+using dnaborshchikova_github.Bea.Collector.Senders;
 using dnaborshchikova_github.Bea.Generator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -81,7 +82,6 @@ var host = Host.CreateDefaultBuilder()
                 "ThreadProcessorWithLock" => provider.GetRequiredService<ThreadProcessorWithLock>(),
             };
         });
-        //services.AddScoped<IEventSender, MessageQueueSender>();
         //services.AddScoped<IEventSender, DataBaseSender>();
         services.AddHttpClient("EventManagement", client =>
         {
@@ -92,6 +92,19 @@ var host = Host.CreateDefaultBuilder()
             var httpClient = sp.GetRequiredService<HttpClient>();
             return new EventsClient(config["EventManagement:BaseUrl"], httpClient);
         });
+        services.AddScoped<IEventSender, MessageQueueSender>();
+        //services.AddMassTransit(x =>
+        //{
+        //    x.UsingRabbitMq((context, config) => // TODO: исправить получение из config.
+        //    {
+        //        config.Host("localhost", h =>
+        //        {
+        //            h.Username("guest");
+        //            h.Password("guest");
+        //        });
+        //    });
+        //});
+
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();
         services.AddScoped<IEventProcessor, EventProcessorService>();
