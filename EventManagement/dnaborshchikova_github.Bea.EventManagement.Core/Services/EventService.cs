@@ -20,11 +20,11 @@ namespace dnaborshchikova_github.Bea.EventManagement.Core.Services
             try
             {
                 await _eventRepository.SaveAsync(сashRegisterEvent);
-                _logger.LogInformation($"DB save SUCCESS. Id={сashRegisterEvent.Id}");
+                _logger.LogDebug($"DB save SUCCESS. Id={сashRegisterEvent.Id}");
             }
             catch (DuplicateEventException ex)
             {
-                _logger.LogError(ex, $"DB save FAILED (duplicate or constraint violation). Id={сashRegisterEvent.Id}");
+                _logger.LogError(ex, $"DB save FAILED (duplicate or constraint violation). Id={сashRegisterEvent.Id}"); //TODO: пересмотреть при обработке ошибок
             }
         }
 

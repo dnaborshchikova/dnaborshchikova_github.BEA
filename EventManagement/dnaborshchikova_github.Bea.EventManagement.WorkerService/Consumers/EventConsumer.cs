@@ -35,12 +35,12 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
                 var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
                 var cashRegisterEventDto = JsonSerializer.Deserialize<CashRegisterEventDto>(message);
 
-                var cashRegisterEventMapper = _serviceScopeFactory
-                    .CreateScope().ServiceProvider.GetRequiredService<ICashRegisterEventMapper>();
+                using var scope = _serviceScopeFactory.CreateScope();
+
+                var cashRegisterEventMapper = scope.ServiceProvider.GetRequiredService<ICashRegisterEventMapper>();
                 var cashRegisterEvent = cashRegisterEventMapper.ToDomain(cashRegisterEventDto);
 
-                var eventService = _serviceScopeFactory
-                    .CreateScope().ServiceProvider.GetRequiredService<IEventService>();
+                var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
                 await eventService.SaveEventAsync(cashRegisterEvent);
 
                 await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
@@ -48,6 +48,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
 
             await channel.BasicConsumeAsync(queue: "send-events", autoAck: false, consumer: consumer);
 
+            _logger.LogInformation("RabbitMQ consumer started.");
             await Task.Delay(Timeout.Infinite, token);
         }
     }

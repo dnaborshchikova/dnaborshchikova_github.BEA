@@ -6,6 +6,8 @@ using dnaborshchikova_github.Bea.EventManagement.WorkerService;
 using dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
+using Serilog;
+using Serilog.Filters;
 
 var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
@@ -44,6 +46,16 @@ builder.Services.AddSingleton<IConnection>((sp =>
 
     return factory.CreateConnectionAsync().GetAwaiter().GetResult();
 }));
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(config)
+    .Enrich.FromLogContext()
+    .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Database.Command"))
+    .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.Update"))
+    .Filter.ByExcluding(Matching.FromSource("Microsoft.EntityFrameworkCore.ChangeTracking"))
+    .Filter.ByExcluding(Matching.FromSource("System.Net.Http.HttpClient"))
+    .CreateLogger();
+builder.Services.AddSerilog();
 
 var host = builder.Build();
 host.Run();
