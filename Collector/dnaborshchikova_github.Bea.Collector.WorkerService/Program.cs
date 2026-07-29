@@ -133,11 +133,13 @@ var host = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton<IConnection>((sp =>
         {
+            var rabbitConfig = config.GetSection("RabbitMq");
+
             var factory = new ConnectionFactory
             {
-                HostName = "localhost",
-                UserName = "guest",
-                Password = "guest"
+                HostName = rabbitConfig["Host"],
+                UserName = rabbitConfig["Username"],
+                Password = rabbitConfig["Password"]
             };
 
             return factory.CreateConnectionAsync().GetAwaiter().GetResult();

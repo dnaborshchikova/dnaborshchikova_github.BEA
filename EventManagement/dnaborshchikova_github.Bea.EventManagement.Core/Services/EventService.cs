@@ -20,7 +20,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.Core.Services
             try
             {
                 await _eventRepository.SaveAsync(сashRegisterEvent);
-                _logger.LogDebug($"DB save SUCCESS. Id={сashRegisterEvent.Id}");
+                _logger.LogInformation($"DB save SUCCESS. Id={сashRegisterEvent.Id}");
             }
             catch (DuplicateEventException ex)
             {

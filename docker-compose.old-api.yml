@@ -6,12 +6,6 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 15s
 
   collector_db:
     image: postgres:15
@@ -30,24 +24,21 @@ services:
         interval: 5s
         timeout: 5s
         retries: 5
-        
   collector_app:
     build: ./Collector
     container_name: collector_app
     depends_on:
       collector_db:
         condition: service_healthy
-      rabbitmq:
+      eventmanagement_app:
         condition: service_healthy
     environment:
       TZ: "Europe/Moscow"
       ProcessingSettings__InputFolder: "/app/input"
       PROCESSING_FOLDER_PATH: /files
       ConnectionStrings__Default: Host=collector_db;Port=5432;Database=Collector;Username=postgres;Password=postgres
+      EventManagement__BaseUrl: http://eventmanagement_app:8080/
       ProcessingSettings__RunMode: "OneTime"
-      RabbitMq__Host: rabbitmq
-      RabbitMq__Username: guest
-      RabbitMq__Password: guest
       ASPNETCORE_ENVIRONMENT: Development
     volumes:
       - ./Collector/dnaborshchikova_github.Bea.Collector.WorkerService/TestData:/app/input
@@ -80,23 +71,24 @@ services:
         interval: 5s
         timeout: 5s
         retries: 5
-        
   eventmanagement_app:
     build: ./EventManagement
+    ports:
+      - "5008:8080"
     container_name: eventmanagement_app
     depends_on:
       eventmanagement_db:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
     environment:
       TZ: "Europe/Moscow"
       ConnectionStrings__Default: Host=eventmanagement_db;Port=5432;Database=EventManagement;Username=postgres;Password=postgres
-      RabbitMq__Host: rabbitmq
-      RabbitMq__Username: guest
-      RabbitMq__Password: guest
       ASPNETCORE_ENVIRONMENT: Development
-      
+      ASPNETCORE_URLS: http://+:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
   eventmanagement_pgadmin:
     image: dpage/pgadmin4
     container_name: eventmanagement_pgadmin
