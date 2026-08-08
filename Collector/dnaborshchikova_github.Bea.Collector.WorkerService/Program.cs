@@ -53,6 +53,15 @@ workerSettingsValidator.Validate(generatorSettings, processingSettings, workerSe
 var appSettingsService = new AppSettingsService();
 var appSettings = appSettingsService.CreateAppSettings(generatorSettings, processingSettings);
 
+var rabbitConfig = config.GetSection("RabbitMq");
+var factory = new ConnectionFactory
+{
+    HostName = rabbitConfig["Host"],
+    UserName = rabbitConfig["Username"],
+    Password = rabbitConfig["Password"]
+};
+var rabbitConnection = await factory.CreateConnectionAsync();
+
 // Настройка Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(config)
@@ -131,20 +140,7 @@ var host = Host.CreateDefaultBuilder(args)
             return new EventsClient(config["EventManagement:BaseUrl"], client);
         });
 
-        services.AddSingleton<IConnection>((sp =>
-        {
-            var rabbitConfig = config.GetSection("RabbitMq");
-
-            var factory = new ConnectionFactory
-            {
-                HostName = rabbitConfig["Host"],
-                UserName = rabbitConfig["Username"],
-                Password = rabbitConfig["Password"]
-            };
-
-            return factory.CreateConnectionAsync().GetAwaiter().GetResult();
-        }));
-
+        services.AddSingleton<IConnection>(rabbitConnection);
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<IEventProcessor, EventProcessorService>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();
