@@ -22,6 +22,7 @@ using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
 using Polly.Timeout;
+using RabbitMQ.Client;
 using Serilog;
 using Serilog.Filters;
 
@@ -51,6 +52,15 @@ workerSettingsValidator.Validate(generatorSettings, processingSettings, workerSe
 
 var appSettingsService = new AppSettingsService();
 var appSettings = appSettingsService.CreateAppSettings(generatorSettings, processingSettings);
+
+var rabbitConfig = config.GetSection("RabbitMq");
+var factory = new ConnectionFactory
+{
+    HostName = rabbitConfig["Host"],
+    UserName = rabbitConfig["Username"],
+    Password = rabbitConfig["Password"]
+};
+var rabbitConnection = await factory.CreateConnectionAsync();
 
 // Настройка Serilog
 Log.Logger = new LoggerConfiguration()
@@ -93,7 +103,8 @@ var host = Host.CreateDefaultBuilder(args)
         });
 
         //services.AddScoped<IEventSender, DataBaseSender>();
-        services.AddScoped<IEventSender, ApiSender>();
+        //services.AddScoped<IEventSender, ApiSender>();
+        services.AddScoped<IEventSender, MessageQueueSender>();
         services.AddHttpClient("EventManagement", client =>
         {
             client.BaseAddress = new Uri(config["EventManagement:BaseUrl"]);
@@ -129,6 +140,7 @@ var host = Host.CreateDefaultBuilder(args)
             return new EventsClient(config["EventManagement:BaseUrl"], client);
         });
 
+        services.AddSingleton<IConnection>(rabbitConnection);
         services.AddScoped<IParser, CsvParser>();
         services.AddScoped<IEventProcessor, EventProcessorService>();
         services.AddScoped<ISendEventLogRepository, SendEventLogRepository>();
