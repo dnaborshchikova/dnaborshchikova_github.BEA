@@ -27,7 +27,7 @@ namespace dnaborshchikova_github.Bea.Collector.Processor.Processors
                 catch (Exception ex)
                 {
                     isSendCompleted = false;
-                    _logger.LogError(ex, "Ошибка при обработке RangeId={RangeId}", range.Id);
+                    _logger.LogError(ex.ToString(), "Ошибка при обработке RangeId={RangeId}", range.Id);
                 }
             });
 
