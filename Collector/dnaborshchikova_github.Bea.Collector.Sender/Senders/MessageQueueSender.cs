@@ -28,8 +28,6 @@ namespace dnaborshchikova_github.Bea.Collector.Senders
         {
             using var channel = await _connection.CreateChannelAsync();
 
-            await channel.QueueDeclareAsync("send-events", durable: true, exclusive: false, autoDelete: false);
-
             _logger.LogInformation($"Start send events. Range id: {range.Id}. Event count: {range.SendEvents.Count}. " +
                 $"Thread id: {Thread.CurrentThread.ManagedThreadId}.");
             var stopwatch = new Stopwatch();
