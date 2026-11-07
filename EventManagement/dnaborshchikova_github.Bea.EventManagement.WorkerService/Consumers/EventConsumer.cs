@@ -44,7 +44,10 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
                     var cashRegisterEventMapper = scope.ServiceProvider.GetRequiredService<ICashRegisterEventMapper>();
                     var cashRegisterEvent = cashRegisterEventMapper.ToDomain(cashRegisterEventDto);
 
+
                     var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+                    throw new Exception("TEST RETRY");
+
                     await eventService.SaveEventAsync(cashRegisterEvent);
                     _logger.LogInformation("Event saved successfully. Id={Id}", cashRegisterEvent.Id);
                     await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
@@ -58,6 +61,11 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
                 catch (Exception ex)
                 {
                     var retryCount = GetRetryCount(eventArgs);
+
+                    _logger.LogError("!!! EXCEPTION !!! Retry={RetryCount}/{MaxRetryCount}; {Exception}"
+                        , retryCount, MaxRetryCount, ex.ToString());
+
+
                     _logger.LogError(ex, "Failed to process message. Retry attempt: {RetryCount}/{MaxRetryCount}", retryCount, MaxRetryCount);
                     if (retryCount < MaxRetryCount)
                     {
@@ -101,8 +109,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
                 Persistent = true,
                 Headers = new Dictionary<string, object?>
                 {
-                    [RetryCountHeader] = Encoding.UTF8.GetBytes(
-                 retryCount.ToString())
+                    [RetryCountHeader] = Encoding.UTF8.GetBytes(retryCount.ToString())
                 }
             };
 

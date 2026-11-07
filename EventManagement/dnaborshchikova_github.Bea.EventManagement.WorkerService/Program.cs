@@ -4,6 +4,7 @@ using dnaborshchikova_github.Bea.EventManagement.Core.Services;
 using dnaborshchikova_github.Bea.EventManagement.Infrastructure;
 using dnaborshchikova_github.Bea.EventManagement.WorkerService;
 using dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers;
+using dnaborshchikova_github.Bea.EventManagement.WorkerService.Services;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
 using Serilog;
@@ -21,6 +22,7 @@ builder.Services.AddSingleton<EventConsumer>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddSingleton<ICashRegisterEventMapper, CashRegisterEventMapper>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddSingleton<DlqReprocessingService>();
 
 builder.Services.AddDbContextFactory<EventManagementDbContext>(options =>
 {
