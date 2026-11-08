@@ -27,7 +27,10 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
 
         public async Task StartAsync(CancellationToken token)
         {
-            var channel = await _connection.CreateChannelAsync();
+            var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true
+                , publisherConfirmationTrackingEnabled: true);
+
+            var channel = await _connection.CreateChannelAsync(channelOptions, token);
 
             await CreateQueue(channel);
 
@@ -46,7 +49,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
 
 
                     var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
-                    throw new Exception("TEST RETRY");
+                    //throw new Exception("TEST RETRY");
 
                     await eventService.SaveEventAsync(cashRegisterEvent);
                     _logger.LogInformation("Event saved successfully. Id={Id}", cashRegisterEvent.Id);
@@ -104,17 +107,28 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
 
         private async Task RetryMessageAsync(IChannel channel, BasicDeliverEventArgs eventArgs, int retryCount)
         {
+            var originalProperties = eventArgs.BasicProperties;
+
+            var headers = originalProperties.Headers != null
+                ? new Dictionary<string, object?>(originalProperties.Headers)
+                : new Dictionary<string, object?>();
+
+            headers[RetryCountHeader] =
+                Encoding.UTF8.GetBytes(retryCount.ToString());
+
             var properties = new BasicProperties
             {
                 Persistent = true,
-                Headers = new Dictionary<string, object?>
-                {
-                    [RetryCountHeader] = Encoding.UTF8.GetBytes(retryCount.ToString())
-                }
+                Headers = headers,
+                MessageId = originalProperties.MessageId,
+                CorrelationId = originalProperties.CorrelationId,
+                ContentType = originalProperties.ContentType,
+                ContentEncoding = originalProperties.ContentEncoding,
+                Type = originalProperties.Type
             };
 
-            await channel.BasicPublishAsync(exchange: "", routingKey: "send-events", mandatory: false
-                , basicProperties: properties, body: eventArgs.Body.ToArray());
+            await channel.BasicPublishAsync(exchange: "", routingKey: "send-events", mandatory: true
+                , properties, eventArgs.Body.ToArray());
 
             await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
         }

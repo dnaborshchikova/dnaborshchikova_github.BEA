@@ -1,6 +1,4 @@
 ﻿using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Services
@@ -20,7 +18,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Services
             _logger = logger;
         }
 
-        public async Task<int> ReprocessAsync(int batchSize, CancellationToken cancellationToken)
+        public async Task<int> ReprocessAsync(CancellationToken cancellationToken)
         {
             var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true
                 , publisherConfirmationTrackingEnabled: true);
