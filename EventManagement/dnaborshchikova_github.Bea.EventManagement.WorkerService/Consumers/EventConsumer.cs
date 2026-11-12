@@ -10,9 +10,6 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
 {
     public class EventConsumer
     {
-        private const int MaxRetryCount = 3;
-        private const string RetryCountHeader = "x-retry-count";
-
         private readonly IConnection _connection;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<EventConsumer> _logger;
@@ -29,83 +26,91 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
         {
             var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true
                 , publisherConfirmationTrackingEnabled: true);
-
             var channel = await _connection.CreateChannelAsync(channelOptions, token);
-
             await CreateQueue(channel);
 
             var consumer = new AsyncEventingBasicConsumer(channel);
-
             consumer.ReceivedAsync += async (_, eventArgs) =>
             {
-                try
-                {
-                    var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-                    var cashRegisterEventDto = JsonSerializer.Deserialize<CashRegisterEventDto>(message);
-
-                    using var scope = _serviceScopeFactory.CreateScope();
-                    var cashRegisterEventMapper = scope.ServiceProvider.GetRequiredService<ICashRegisterEventMapper>();
-                    var cashRegisterEvent = cashRegisterEventMapper.ToDomain(cashRegisterEventDto);
-
-
-                    var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
-                    //throw new Exception("TEST RETRY");
-
-                    await eventService.SaveEventAsync(cashRegisterEvent);
-                    _logger.LogInformation("Event saved successfully. Id={Id}", cashRegisterEvent.Id);
-                    await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
-                    _logger.LogInformation("RabbitMQ message acknowledged. Id={Id}", cashRegisterEvent.Id);
-                }
-                catch (DuplicateEventException)
-                {
-                    //_logger.LogInformation("Event is already been added. Id={Id}", cashRegisterEvent.Id);
-                    await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
-                }
-                catch (Exception ex)
-                {
-                    var retryCount = GetRetryCount(eventArgs);
-
-                    _logger.LogError("!!! EXCEPTION !!! Retry={RetryCount}/{MaxRetryCount}; {Exception}"
-                        , retryCount, MaxRetryCount, ex.ToString());
-
-
-                    _logger.LogError(ex, "Failed to process message. Retry attempt: {RetryCount}/{MaxRetryCount}", retryCount, MaxRetryCount);
-                    if (retryCount < MaxRetryCount)
-                    {
-                        await RetryMessageAsync(channel, eventArgs, retryCount + 1);
-                    }
-                    else
-                    {
-                        _logger.LogError(
-                            "Max retry count reached. Sending message to DLQ.");
-
-                        await channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: false);
-                    }
-                }
+                await TryProccessMessage(channel, eventArgs);
             };
 
             await channel.BasicConsumeAsync(queue: "send-events", autoAck: false, consumer: consumer);
-
             _logger.LogInformation("RabbitMQ consumer started.");
-
             await Task.Delay(Timeout.Infinite, token);
+        }
+
+        private async Task TryProccessMessage(IChannel channel, BasicDeliverEventArgs eventArgs)
+        {
+            try
+            {
+                var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
+                var cashRegisterEventDto = JsonSerializer.Deserialize<CashRegisterEventDto>(message);
+
+                using var scope = _serviceScopeFactory.CreateScope();
+                var cashRegisterEventMapper = scope.ServiceProvider.GetRequiredService<ICashRegisterEventMapper>();
+                var cashRegisterEvent = cashRegisterEventMapper.ToDomain(cashRegisterEventDto);
+
+                var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
+                //throw new Exception("TEST RETRY"); //TODO: удалить, оставлено для тестирования DLQ
+
+                await eventService.SaveEventAsync(cashRegisterEvent);
+                _logger.LogInformation("Event saved successfully. Id={Id}", cashRegisterEvent.Id);
+
+                await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+                _logger.LogInformation("RabbitMQ message acknowledged. Id={Id}", cashRegisterEvent.Id);
+            }
+            catch (DuplicateEventException ex)
+            {
+                _logger.LogInformation("Event is already been added. Id={Id}", ex.EventId);
+                await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+            }
+            catch (Exception ex)
+            {
+                var retryCount = GetRetryCount(eventArgs);
+                _logger.LogError(ex, "Failed to process message. Retry attempt: {RetryCount}/{MaxRetryCount}. {Exception}"
+                    , retryCount, RabbitMqConstants.MaxRetryCount, ex.ToString());
+
+                if (retryCount < RabbitMqConstants.MaxRetryCount)
+                {
+                    await RetryMessageAsync(channel, eventArgs, retryCount + 1);
+                }
+                else
+                {
+                    _logger.LogError("Max retry count reached. Sending message to DLQ.");
+                    await channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: false);
+                }
+            }
         }
 
         private async Task CreateQueue(IChannel channel)
         {
-            await channel.ExchangeDeclareAsync(exchange: "send-events.dlx", type: ExchangeType.Direct, durable: true, autoDelete: false);
-            await channel.QueueDeclareAsync(queue: "send-events.dlq", durable: true, exclusive: false, autoDelete: false);
-            await channel.QueueBindAsync(queue: "send-events.dlq", exchange: "send-events.dlx", routingKey: "send-events");
+            await channel.ExchangeDeclareAsync(RabbitMqConstants.DeadLetterExchange, type: ExchangeType.Direct
+                , durable: true, autoDelete: false);
+            await channel.QueueDeclareAsync(RabbitMqConstants.DeadLetterQueue
+                , durable: true, exclusive: false, autoDelete: false);
+            await channel.QueueBindAsync(RabbitMqConstants.DeadLetterQueue
+                , RabbitMqConstants.DeadLetterExchange, RabbitMqConstants.EventsRoutingKey);
 
             var queueArgs = new Dictionary<string, object?>
             {
-                ["x-dead-letter-exchange"] = "send-events.dlx"
+                ["x-dead-letter-exchange"] = RabbitMqConstants.DeadLetterExchange
             };
-            await channel.QueueDeclareAsync(queue: "send-events", durable: true
+            await channel.QueueDeclareAsync(RabbitMqConstants.EventsQueue, durable: true
                 , exclusive: false, autoDelete: false, queueArgs);
         }
 
         private async Task RetryMessageAsync(IChannel channel, BasicDeliverEventArgs eventArgs, int retryCount)
+        {
+            var properties = GetRetryMessageProperties(eventArgs, retryCount);
+
+            await channel.BasicPublishAsync(exchange: string.Empty, RabbitMqConstants.EventsRoutingKey, mandatory: true
+                , properties, eventArgs.Body.ToArray());
+
+            await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+        }
+
+        private BasicProperties GetRetryMessageProperties(BasicDeliverEventArgs eventArgs, int retryCount)
         {
             var originalProperties = eventArgs.BasicProperties;
 
@@ -113,7 +118,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
                 ? new Dictionary<string, object?>(originalProperties.Headers)
                 : new Dictionary<string, object?>();
 
-            headers[RetryCountHeader] =
+            headers[RabbitMqConstants.RetryCountHeader] =
                 Encoding.UTF8.GetBytes(retryCount.ToString());
 
             var properties = new BasicProperties
@@ -127,16 +132,13 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
                 Type = originalProperties.Type
             };
 
-            await channel.BasicPublishAsync(exchange: "", routingKey: "send-events", mandatory: true
-                , properties, eventArgs.Body.ToArray());
-
-            await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+            return properties;
         }
 
         private int GetRetryCount(BasicDeliverEventArgs eventArgs)
         {
             if (eventArgs.BasicProperties.Headers == null 
-                || !eventArgs.BasicProperties.Headers.TryGetValue(RetryCountHeader, out var retryCount))
+                || !eventArgs.BasicProperties.Headers.TryGetValue(RabbitMqConstants.RetryCountHeader, out var retryCount))
             {
                 return 0;
             }

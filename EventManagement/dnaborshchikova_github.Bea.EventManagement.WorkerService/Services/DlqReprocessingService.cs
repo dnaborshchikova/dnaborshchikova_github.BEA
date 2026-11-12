@@ -5,10 +5,6 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Services
 {
     public class DlqReprocessingService
     {
-        private const string DlqName = "send-events.dlq";
-        private const string MainQueueName = "send-events";
-        private const string RetryCountHeader = "x-retry-count";
-
         private readonly IConnection _connection;
         private readonly ILogger<DlqReprocessingService> _logger;
 
@@ -27,7 +23,7 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Services
             var processedCount = 0;
             while (!cancellationToken.IsCancellationRequested)
             {
-                var message = await channel.BasicGetAsync(queue: DlqName, autoAck: false, cancellationToken);
+                var message = await channel.BasicGetAsync(RabbitMqConstants.DeadLetterQueue, autoAck: false, cancellationToken);
                 if (message == null)
                 {
                     _logger.LogInformation("DLQ is empty.");
@@ -36,50 +32,48 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Services
 
                 try
                 {
-                    var originalProperties = message.BasicProperties;
-                    var headers = originalProperties.Headers != null
-                        ? new Dictionary<string, object?>(originalProperties.Headers)
-                        : new Dictionary<string, object?>();
+                    var properties = GetMessageProperties(message);
 
-                    headers[RetryCountHeader] = Encoding.UTF8.GetBytes("0");
-                    var properties = new BasicProperties
-                    {
-                        Persistent = true,
-                        ContentType = originalProperties.ContentType,
-                        ContentEncoding = originalProperties.ContentEncoding,
-                        CorrelationId = originalProperties.CorrelationId,
-                        MessageId = originalProperties.MessageId,
-                        Type = originalProperties.Type,
-                        Headers = headers
-                    };
-
-                    await channel.BasicPublishAsync(exchange: "", routingKey: MainQueueName, mandatory: true,
-                        basicProperties: properties, message.Body, cancellationToken);
-
-                    // Если выполнение дошло сюда,
-                    // публикация получила подтверждение.
+                    await channel.BasicPublishAsync(exchange: string.Empty, RabbitMqConstants.EventsQueue
+                        , mandatory: true, properties, message.Body, cancellationToken);
                     await channel.BasicAckAsync(message.DeliveryTag, multiple: false, cancellationToken);
 
                     processedCount++;
-                    _logger.LogInformation(
-                        "Message successfully reprocessed. MessageId={MessageId}",
+                    _logger.LogInformation("Message successfully reprocessed. MessageId={MessageId}",
                         properties.MessageId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(
-                        ex,
-                        "Failed to reprocess message. Original message will remain in DLQ.");
-
+                    _logger.LogError(ex, "Failed to reprocess message. Original message will remain in DLQ.");
                     throw;
                 }
             }
 
-            _logger.LogInformation(
-               "DLQ reprocessing completed. Messages processed: {Count}",
-               processedCount);
+            _logger.LogInformation("DLQ reprocessing completed. Messages processed: {Count}", processedCount);
 
             return processedCount;
+        }
+
+        private BasicProperties GetMessageProperties(BasicGetResult message)
+        {
+            var originalProperties = message.BasicProperties;
+            var headers = originalProperties.Headers != null
+                ? new Dictionary<string, object?>(originalProperties.Headers)
+                : new Dictionary<string, object?>();
+
+            headers[RabbitMqConstants.RetryCountHeader] = Encoding.UTF8.GetBytes("0");
+            var properties = new BasicProperties
+            {
+                Persistent = true,
+                ContentType = originalProperties.ContentType,
+                ContentEncoding = originalProperties.ContentEncoding,
+                CorrelationId = originalProperties.CorrelationId,
+                MessageId = originalProperties.MessageId,
+                Type = originalProperties.Type,
+                Headers = headers
+            };
+
+            return properties;
         }
     }
 }
