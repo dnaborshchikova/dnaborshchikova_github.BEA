@@ -1,4 +1,5 @@
-﻿using RabbitMQ.Client;
+﻿using dnaborshchikova_github.Bea.EventManagement.WorkerService.RabbitMq;
+using RabbitMQ.Client;
 using System.Text;
 
 namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Services

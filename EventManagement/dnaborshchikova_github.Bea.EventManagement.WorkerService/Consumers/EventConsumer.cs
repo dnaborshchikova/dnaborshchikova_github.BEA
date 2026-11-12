@@ -1,6 +1,7 @@
 ﻿using dnaborshchikova_github.Bea.EventManagement.Core.Mappers;
 using dnaborshchikova_github.Bea.EventManagement.Core.Models;
 using dnaborshchikova_github.Bea.EventManagement.Core.Services;
+using dnaborshchikova_github.Bea.EventManagement.WorkerService.RabbitMq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -13,13 +14,15 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
         private readonly IConnection _connection;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<EventConsumer> _logger;
+        private readonly RabbitMqQueueInitializer _rabbitMqQueueInitializer;
 
         public EventConsumer(IConnection connection, IServiceScopeFactory serviceScopeFactory
-            , ILogger<EventConsumer> logger)
+            , ILogger<EventConsumer> logger, RabbitMqQueueInitializer rabbitMqQueueInitializer)
         {
             _connection = connection;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
+            _rabbitMqQueueInitializer = rabbitMqQueueInitializer;
         }
 
         public async Task StartAsync(CancellationToken token)
@@ -27,7 +30,8 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
             var channelOptions = new CreateChannelOptions(publisherConfirmationsEnabled: true
                 , publisherConfirmationTrackingEnabled: true);
             var channel = await _connection.CreateChannelAsync(channelOptions, token);
-            await CreateQueue(channel);
+
+            await _rabbitMqQueueInitializer.CreateQueueAsync(channel);
 
             var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.ReceivedAsync += async (_, eventArgs) =>
@@ -81,23 +85,6 @@ namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.Consumers
                     await channel.BasicNackAsync(eventArgs.DeliveryTag, multiple: false, requeue: false);
                 }
             }
-        }
-
-        private async Task CreateQueue(IChannel channel)
-        {
-            await channel.ExchangeDeclareAsync(RabbitMqConstants.DeadLetterExchange, type: ExchangeType.Direct
-                , durable: true, autoDelete: false);
-            await channel.QueueDeclareAsync(RabbitMqConstants.DeadLetterQueue
-                , durable: true, exclusive: false, autoDelete: false);
-            await channel.QueueBindAsync(RabbitMqConstants.DeadLetterQueue
-                , RabbitMqConstants.DeadLetterExchange, RabbitMqConstants.EventsRoutingKey);
-
-            var queueArgs = new Dictionary<string, object?>
-            {
-                ["x-dead-letter-exchange"] = RabbitMqConstants.DeadLetterExchange
-            };
-            await channel.QueueDeclareAsync(RabbitMqConstants.EventsQueue, durable: true
-                , exclusive: false, autoDelete: false, queueArgs);
         }
 
         private async Task RetryMessageAsync(IChannel channel, BasicDeliverEventArgs eventArgs, int retryCount)

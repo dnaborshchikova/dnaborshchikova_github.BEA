@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace dnaborshchikova_github.Bea.EventManagement.WorkerService
+﻿namespace dnaborshchikova_github.Bea.EventManagement.WorkerService.RabbitMq
 {
     public static class RabbitMqConstants
     {

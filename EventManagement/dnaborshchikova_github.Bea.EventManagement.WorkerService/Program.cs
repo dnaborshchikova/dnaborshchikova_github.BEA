@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
 using Serilog;
 using Serilog.Filters;
+using dnaborshchikova_github.Bea.EventManagement.WorkerService.RabbitMq;
 
 var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
@@ -24,6 +25,7 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddSingleton<ICashRegisterEventMapper, CashRegisterEventMapper>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddSingleton<DlqReprocessingService>();
+builder.Services.AddScoped<RabbitMqQueueInitializer>();
 
 builder.Services.AddDbContextFactory<EventManagementDbContext>(options =>
 {
