@@ -25,7 +25,7 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddSingleton<ICashRegisterEventMapper, CashRegisterEventMapper>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddSingleton<DlqReprocessingService>();
-builder.Services.AddScoped<RabbitMqQueueInitializer>();
+builder.Services.AddSingleton<RabbitMqQueueInitializer>();
 
 builder.Services.AddDbContextFactory<EventManagementDbContext>(options =>
 {
