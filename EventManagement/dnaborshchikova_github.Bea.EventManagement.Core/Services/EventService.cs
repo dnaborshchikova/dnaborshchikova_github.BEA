@@ -17,15 +17,8 @@ namespace dnaborshchikova_github.Bea.EventManagement.Core.Services
 
         public async Task SaveEventAsync(CashRegisterEvent сashRegisterEvent)
         {
-            try
-            {
-                await _eventRepository.SaveAsync(сashRegisterEvent);
-                _logger.LogInformation($"DB save SUCCESS. Id={сashRegisterEvent.Id}");
-            }
-            catch (DuplicateEventException ex)
-            {
-                _logger.LogError(ex, $"DB save FAILED (duplicate or constraint violation). Id={сashRegisterEvent.Id}"); //TODO: пересмотреть при обработке ошибок
-            }
+            await _eventRepository.SaveAsync(сashRegisterEvent);
+            _logger.LogInformation($"DB save SUCCESS. Id={сashRegisterEvent.Id}");
         }
 
         public async Task SaveEventBatchAsync(List<CashRegisterEvent> events)
