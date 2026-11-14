@@ -6,6 +6,7 @@ using dnaborshchikova_github.Bea.EventManagement.Infrastructure;
 using dnaborshchikova_github.Bea.EventManagement.Infrastructure.Initializers;
 using dnaborshchikova_github.Bea.EventManagement.WebApi.Handlers;
 using dnaborshchikova_github.Bea.EventManagement.WebApi.Middleware;
+using dnaborshchikova_github.Bea.EventManagement.WebApi.Endpoints;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Filters;
@@ -81,5 +82,7 @@ app.UseAuthorization();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.MapControllers();
 app.MapHealthChecks("/health");
+
+app.MapEventEndpoints();
 
 app.Run();
