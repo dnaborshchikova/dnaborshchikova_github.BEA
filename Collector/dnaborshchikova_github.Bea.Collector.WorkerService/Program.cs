@@ -60,7 +60,7 @@ var factory = new ConnectionFactory
     UserName = rabbitConfig["Username"],
     Password = rabbitConfig["Password"]
 };
-var rabbitConnection = await factory.CreateConnectionAsync();
+var rabbitConnection = await factory.CreateConnectionAsync(); //TODO: требует RabbitMQ даже если использую API для передачи данных
 
 // Настройка Serilog
 Log.Logger = new LoggerConfiguration()
@@ -103,8 +103,8 @@ var host = Host.CreateDefaultBuilder(args)
         });
 
         //services.AddScoped<IEventSender, DataBaseSender>();
-        //services.AddScoped<IEventSender, ApiSender>();
-        services.AddScoped<IEventSender, MessageQueueSender>();
+        services.AddScoped<IEventSender, ApiSender>();
+        //services.AddScoped<IEventSender, MessageQueueSender>();
         services.AddHttpClient("EventManagement", client =>
         {
             client.BaseAddress = new Uri(config["EventManagement:BaseUrl"]);
